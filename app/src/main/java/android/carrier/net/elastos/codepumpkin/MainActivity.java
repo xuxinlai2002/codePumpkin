@@ -1,18 +1,21 @@
 package android.carrier.net.elastos.codepumpkin;
 
+import android.carrier.net.elastos.codepumpkin.Bean.Action;
 import android.carrier.net.elastos.codepumpkin.common.GameCommon;
 import android.carrier.net.elastos.codepumpkin.layer.GameCCLayer;
 import android.carrier.net.elastos.codepumpkin.layer.LauncherCCLayer;
-import android.carrier.net.elastos.codepumpkin.util.SpriteUtil;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
+
+import com.google.gson.Gson;
 
 import org.cocos2d.layers.CCScene;
 import org.cocos2d.nodes.CCDirector;
@@ -22,7 +25,13 @@ public class MainActivity extends AppCompatActivity {
 
     private CCScene launcherScene;
     private CCScene gameScene;
-    private SceneHandler sceneHandler;
+
+    private ActionReceiver actionReceiver;
+
+    private GameCCLayer gameCCLayer;
+
+    private Gson gson;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,18 +43,37 @@ public class MainActivity extends AppCompatActivity {
         initCocos();
 
 
-        sceneHandler = new SceneHandler();
 
         launcherScene = CCScene.node();  //启动页面场景
         gameScene = CCScene.node();
         launcherScene.addChild(new LauncherCCLayer()); //将MyCCLayer层加到场景里
-        gameScene.addChild(new GameCCLayer(this)); //将MyCCLayer层加到场景里
+        gameCCLayer = new GameCCLayer(this);
+        gameScene.addChild(gameCCLayer); //将MyCCLayer层加到场景里
         CCDirector.sharedDirector().runWithScene(gameScene);// 运行场景
 
-
-
+        gson = new Gson();
+        createAndBindBroadcast();
         //sceneHandler.sendMessageAtTime(new Message(),SystemClock.uptimeMillis()+1000);
 
+    }
+
+    private void test(){
+        Intent intent = new Intent();
+        intent.setAction(GameCommon.ACTION_MESSAGE);
+        Action a = new Action("CicPM5B3Hfr4GdqqDy3zYkqR59gE1G9WJYt2Bygy9iZd",1,60);
+        intent.putExtra(GameCommon.ACTION_VALUE,gson.toJson( a));
+        this.sendBroadcast(intent);
+    }
+
+
+    private void createAndBindBroadcast(){
+        actionReceiver = new ActionReceiver();
+        // 1. 实例化BroadcastReceiver子类 &  IntentFilter
+        IntentFilter intentFilter = new IntentFilter();
+
+        // 2. 设置接收广播的类型
+        intentFilter.addAction(GameCommon.ACTION_MESSAGE);
+        registerReceiver(actionReceiver,intentFilter);
     }
 
     private void getDisplayInfo() {
@@ -111,18 +139,24 @@ public class MainActivity extends AppCompatActivity {
         // 结束，游戏退出时调用
     }
 
+    class ActionReceiver extends BroadcastReceiver {
 
-    public class SceneHandler extends Handler {
-
-        public SceneHandler() {
-        }
 
         @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            CCDirector.sharedDirector().replaceScene(gameScene);
+        public void onReceive(Context context, Intent intent) {
+            String message = intent.getStringExtra(GameCommon.ACTION_VALUE);
+            try{
+                Action action = gson.<Action>fromJson(message, Action.class);
+                gameCCLayer.actionHandler(action);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
 
         }
+
     }
+
+
+
 
 }

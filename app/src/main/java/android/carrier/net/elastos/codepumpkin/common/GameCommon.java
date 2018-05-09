@@ -25,4 +25,6 @@ public class GameCommon {
     public static final float gameHeight = 480;
 
 
+    public static final String ACTION_MESSAGE = "ACTION_MESSAGE";
+    public static final String ACTION_VALUE = "ACTION_VALUE";
 }
