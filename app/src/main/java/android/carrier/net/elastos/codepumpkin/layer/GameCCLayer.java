@@ -82,7 +82,7 @@ public class GameCCLayer extends CCLayer {
         initBg();
 
         carrierExecutorInst = new CarrierExecutor(this.context);
-        currentUser =carrierExecutorInst.getUserID();
+        currentUser = carrierExecutorInst.getUserID();
 
         initCtrlView();
         initView();
@@ -188,7 +188,7 @@ public class GameCCLayer extends CCLayer {
                     break;
                 case GameCommon.ACTION_ROTA:
                     user.getSprite().runAction(CCSequence.actions(
-                            createRotaAction(user, action.getValue()), CCCallFunc.actionWithTarget(GameCCLayer.this, "actionCall")
+                            createRotaAction(user, (float)( action.getValue())), CCCallFunc.actionWithTarget(GameCCLayer.this, "actionCall")
                     ));
                     break;
             }
@@ -208,9 +208,12 @@ public class GameCCLayer extends CCLayer {
     private int getUserIndex(String userId){
 
         int nRet = 0;
-        if(!userId.equals(carrierExecutorInst.getUserID())){
+        if(!userId.equals(gameUserList.get(1).getId())) {
             nRet = 1;
         }
+//        } if(!userId.equals(carrierExecutorInst.getUserID())){
+//            nRet = 1;
+//        }
 
         return nRet;
     }
@@ -271,9 +274,9 @@ public class GameCCLayer extends CCLayer {
      * @param step
      * @return
      */
-    public CCMoveBy createMoveAction(GameUser gameUser, float step) {
+    public CCMoveBy createMoveAction(GameUser gameUser, double step) {
         CCMoveBy moveAction = null;
-        float duration = (Math.abs(step) / GameCommon.DEFAULT_SIZE) * GameCommon.DEFAULT_TIME;
+        float duration = (Math.abs((float) step) / GameCommon.DEFAULT_SIZE) * GameCommon.DEFAULT_TIME;
         switch (gameUser.getDirection()) {        //方向  上、右、下、左
             case GameCommon.DIRECTION_UP:
             default:
@@ -392,7 +395,6 @@ public class GameCCLayer extends CCLayer {
      * 初始化其他视图控件
      */
     private void initView() {
-        currentUser = "";
 
         if (isRePlay) {
             for (int i = 0; i < gameUserList.size(); i++) {
@@ -406,23 +408,23 @@ public class GameCCLayer extends CCLayer {
                 pumpkinList.get(i).setOpacity(255);
             }
         } else {
-            //添加玩家
-            GameUser user = new GameUser();
+            //添加自身玩家
+            GameUser myUser = new GameUser();
 
-            user.setId(carrierExecutorInst.getUserID());
-            user.setDirection(1);
-            user.setSprite(SpriteUtil.createGameUser(0));
-            user.setStartPosition(user.getSprite().getPosition());
-            gameUserList.add(user);
-            this.addChild(user.getSprite(), 30);
-
-
-            user.setId(carrierExecutorInst.getFriendID());
-            user.setDirection(1);
-            user.setSprite(SpriteUtil.createGameUser(1));
-            user.setStartPosition(user.getSprite().getPosition());
-            gameUserList.add(user);
-            this.addChild(user.getSprite(), 30);
+            myUser.setId(carrierExecutorInst.getUserID());
+            myUser.setDirection(1);
+            myUser.setSprite(SpriteUtil.createGameUser(0));
+            myUser.setStartPosition(myUser.getSprite().getPosition());
+            gameUserList.add(myUser);
+            this.addChild(myUser.getSprite(), 5);
+            // 添加好友玩家
+            GameUser friendUser = new GameUser();
+            friendUser.setId(carrierExecutorInst.getFriendID());
+            friendUser.setDirection(1);
+            friendUser.setSprite(SpriteUtil.createGameUser(1));
+            friendUser.setStartPosition(friendUser.getSprite().getPosition());
+            gameUserList.add(friendUser);
+            this.addChild(friendUser.getSprite(), 5);
 
 
             // 添加南瓜和障碍物
