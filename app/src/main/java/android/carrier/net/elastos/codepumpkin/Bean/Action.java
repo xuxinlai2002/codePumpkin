@@ -16,7 +16,7 @@ public class Action {
      * 若 type = 1   value为步数
      * 若 type = 2   value为角度
      */
-    private float value;
+    private double value;
 
     /**用户id*/
     private String userId;
@@ -54,22 +54,15 @@ public class Action {
         this.type = type;
     }
 
-    public float getValue() {
+    public double getValue() {
         return value;
     }
 
-    public void setValue(float value) {
+    public void setValue(double value) {
         this.value = value;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Action action = (Action) o;
-        return type == action.type &&
-                Float.compare(action.value, value) == 0;
-    }
+
 
 
     @Override

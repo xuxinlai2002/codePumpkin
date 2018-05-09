@@ -145,8 +145,10 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String message = intent.getStringExtra(GameCommon.ACTION_VALUE);
+            Log.i("info",message);
+
             try{
-                Action action = gson.<Action>fromJson(message, Action.class);
+                Action action = gson.fromJson(message, Action.class);
                 gameCCLayer.actionHandler(action);
             }catch (Exception e){
                 e.printStackTrace();

@@ -1,5 +1,6 @@
 package android.carrier.net.elastos.codepumpkin.util;
 
+import android.carrier.net.elastos.codepumpkin.Bean.GameUser;
 import android.carrier.net.elastos.codepumpkin.common.GameCommon;
 import android.util.Log;
 
@@ -53,18 +54,18 @@ public class SpriteUtil {
      */
     public static CCSprite createGameUser(int nType) {
         String picPath = "";
-        int nS;
+        float nS;
         if(nType == 0){
-            nS = -60;
+            nS = 0 - GameCommon.DEFAULT_SIZE ;
             picPath = "dragon-head.png";
         }else{
-            nS = 60;
+            nS = GameCommon.DEFAULT_SIZE;
             picPath = "dragon-head2.png";
         }
         CCSprite s = new CCSprite(picPath);
         s.setPosition(cratePoint(boxSize.getWidth() / 2 + nS, s.getContentSize().getHeight()));
         //s.setAnchorPoint(CGPoint.getZero());
-        s.setScale(1.5);
+        s.setScale(1.2);
         return s;
 
     }

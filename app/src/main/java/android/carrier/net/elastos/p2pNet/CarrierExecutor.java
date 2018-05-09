@@ -19,6 +19,8 @@ public class CarrierExecutor {
     private Context context;
     SysApp application;
 
+    private Gson gson;
+
     public CarrierExecutor(Context context) {
         this.context = context;
         init();
@@ -28,6 +30,7 @@ public class CarrierExecutor {
     private void init() {
 
         application = (SysApp)this.context.getApplicationContext();
+        gson = new Gson();
 //        try{
 ////            List<FriendInfo> friendInfoList = application.getCarrier().getFriends();
 ////            application.setFriendID();
@@ -88,18 +91,23 @@ public class CarrierExecutor {
 
 
 
-    private String actionToGString(Action action){
+    public String actionToGString(Action action){
 
-        String strActionResult = "";
-        Gson gson = new Gson();
+//        String strActionResult = "";
+//        Gson gson = new Gson();
+//        String json = gson.toJson(action);
+//        Log.i("gson",json);
+//
+//        Action actionResult = gson.fromJson(json,Action.class);
+//        strActionResult = actionResult.toString();
+//        Log.i("gson",strActionResult);
         String json = gson.toJson(action);
         Log.i("gson",json);
+        return json;
+    }
 
-        Action actionResult = gson.fromJson(json,Action.class);
-        strActionResult = actionResult.toString();
-        Log.i("gson",strActionResult);
-
-        return strActionResult;
+    public Action stringToAction(String text){
+        return gson.fromJson(text,Action.class);
     }
 
 
