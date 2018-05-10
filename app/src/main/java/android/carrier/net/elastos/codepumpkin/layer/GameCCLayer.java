@@ -1,6 +1,7 @@
 package android.carrier.net.elastos.codepumpkin.layer;
 
 import android.carrier.net.elastos.codepumpkin.Bean.Action;
+import android.carrier.net.elastos.codepumpkin.Bean.GameElement;
 import android.carrier.net.elastos.codepumpkin.Bean.GameUser;
 import android.carrier.net.elastos.codepumpkin.MainActivity;
 import android.carrier.net.elastos.codepumpkin.common.GameCommon;
@@ -223,6 +224,26 @@ public class GameCCLayer extends CCLayer {
     private void setDisplayStep(boolean v){
         for (int i = 0;i<stepPromptList.size();i++){
             stepPromptList.get(i).setOpacity(v?255:0);
+        }
+    }
+
+    /***
+     * 控件处理
+     */
+    public void ElementHandler(List<GameElement> pumpkins,List<GameElement> bush){
+        // 添加南瓜和障碍物
+        for (int i = 0; i < pumpkins.size(); i++) {
+            CCSprite cc = SpriteUtil.createPumpkin();
+            cc.setPosition(pumpkins.get(i).getX(),pumpkins.get(i).getY());
+            pumpkinList.add(cc);
+            this.addChild(pumpkinList.get(i), 10);
+        }
+
+        for (int i = 0; i < bush.size(); i++) {
+            CCSprite cc = SpriteUtil.createBush();
+            cc.setPosition(bush.get(i).getX(),bush.get(i).getY());
+            bushList.add(cc);
+            this.addChild(bushList.get(i), 10);
         }
     }
 
@@ -624,22 +645,26 @@ public class GameCCLayer extends CCLayer {
             gameUserList.add(friendUser);
             this.addChild(friendUser.getSprite(), 5);
 
-
-            // 添加南瓜和障碍物
-            for (int i = 0; i < GameCommon.PUMPKIN_COUNT; i++) {
-                pumpkinList.add(randomPositionBySprite(SpriteUtil.createPumpkin()));
-                this.addChild(pumpkinList.get(i), 10);
-            }
-
-            for (int i = 0; i < GameCommon.BUSH_COUNT; i++) {
-                bushList.add(randomPositionBySprite(SpriteUtil.createBush()));
-                this.addChild(bushList.get(i), 10);
-            }
+            initElement();
         }
 
         playUserAnimation();
         createStepPrompt();
 
+    }
+
+    private void initElement(){
+
+        // 添加南瓜和障碍物
+        for (int i = 0; i < GameCommon.PUMPKIN_COUNT; i++) {
+            pumpkinList.add(randomPositionBySprite(SpriteUtil.createPumpkin()));
+            this.addChild(pumpkinList.get(i), 10);
+        }
+
+        for (int i = 0; i < GameCommon.BUSH_COUNT; i++) {
+            bushList.add(randomPositionBySprite(SpriteUtil.createBush()));
+            this.addChild(bushList.get(i), 10);
+        }
     }
 
 
