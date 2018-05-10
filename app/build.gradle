@@ -48,6 +48,9 @@ dependencies {
     implementation 'com.yanzhenjie:permission:2.0.0-rc4'
     implementation 'com.android.support:design:27.1.0'
     implementation 'com.android.support:support-vector-drawable:27.1.0'
+
+
     implementation 'com.github.yuzhiqiang1993:zxing:2.1.6'
-    implementation files('/Users/xuxinlai/blockchain/zxing/zxinglibrary/libs/core-3.3.0.jar')
+
+//    implementation files('/Users/xuxinlai/blockchain/zxing/zxinglibrary/libs/core-3.3.0.jar')
 }

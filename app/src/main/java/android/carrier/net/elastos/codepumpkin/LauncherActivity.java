@@ -8,16 +8,20 @@ import android.carrier.net.elastos.common.Synchronizer;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -39,6 +43,11 @@ import com.yanzhenjie.permission.Action;
 import com.yanzhenjie.permission.AndPermission;
 import com.yanzhenjie.permission.Permission;
 
+import com.google.zxing.WriterException;
+import com.yanzhenjie.permission.Action;
+import com.yanzhenjie.permission.AndPermission;
+import com.yzq.zxinglibrary.encode.CodeCreator;
+
 public class LauncherActivity extends AppCompatActivity implements View.OnClickListener{
 
     private String friendUserId = "9U6E5ZkvtW8pVpo8iSDDyoZ4BccFTRKwRUVbLqYrXY6T";
@@ -54,6 +63,7 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
     private String TAG="C LauncherActivity";
     private String AUTO = "auto-accepted";
     private SysApp application;
+    private ImageView contentIvWithLogo;
 
     //
     private int REQUEST_CODE_SCAN = 111;
@@ -65,7 +75,7 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
         setContentView(R.layout.launcher);
 
         initView();
-        testGson();
+        //testGson();
         initCarrierNet();
 
         try {
@@ -97,6 +107,7 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
     @Override
     public void onClick(View v) {
 
+        Bitmap bitmap = null;
         try {
 
             String strID ="";
@@ -108,13 +119,26 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
                     break;
                 case R.id.btn_my_info:
                     //get user info
-
                     strAddr = application.getCarrier().getAddress();
                     strID = application.getCarrier().getUserId();
-                    Log.i(TAG,"on click btn_my_info :" + strAddr + "," + strID);
-                    //TODO
-                    //create QRCode
 
+                    String contentEtString = strAddr + "," + strID;
+                    Log.i(TAG,"on click btn_my_info :" + strAddr.length() + "," + strID.length());
+
+
+                    bitmap = null;
+                    try {
+                        Bitmap logo = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
+                        bitmap = CodeCreator.createQRCode(contentEtString, 400, 400, logo);
+
+                    } catch (WriterException e) {
+                        e.printStackTrace();
+                    }
+                    if (bitmap != null) {
+
+                        //TODO need to add in a dialog???
+                        contentIvWithLogo.setImageBitmap(bitmap);
+                    }
 
                     break;
                 case R.id.btn_add_friend:
@@ -152,20 +176,6 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
                                 }
                             }).start();
 
-                    //TODO
-                    //get the QRCode Info
-                    //如果不传 ZxingConfig的话，两行代码就能搞定了
-//                    Intent intent = new Intent(LauncherActivity.this, CaptureActivity.class);
-//                    //intent.putExtra(Constant.INTENT_ZXING_CONFIG, config);
-//                    startActivityForResult(intent, REQUEST_CODE_SCAN);
-//
-//
-//                    Log.i(TAG,"on click btn_add_friend :" + strAddr + "," + strID);
-//                    application.setFriendID(friendUserId);
-//                    application.setFriendAddr(friendUserAddress);
-//                    application.getCarrier().addFriend(friendUserAddress,AUTO);
-
-
                     break;
             }
 
@@ -179,13 +189,31 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+
+        Log.i(TAG,"on click onActivityResult start ");
         // 扫描二维码/条码回传
         if (requestCode == REQUEST_CODE_SCAN && resultCode == RESULT_OK) {
             if (data != null) {
 
                 String content = data.getStringExtra(Constant.CODED_CONTENT);
-                Log.i(TAG,"on click onActivityResult is :" + content);
-                //result.setText("扫描结果为：" + content);
+                Log.i(TAG,"onActivityResult 扫描结果为 :" + content);
+
+                //purse content 中间 52位为逗号
+                friendUserAddress = content.substring(0,51);
+                friendUserId = content.substring(53);
+
+                Log.i(TAG,"friendAddress :" + friendUserAddress);
+                Log.i(TAG,"friendUserId :" + friendUserId);
+
+                application.setFriendID(friendUserId);
+                application.setFriendAddr(friendUserAddress);
+
+                try {
+                    String UserID = application.getCarrier().getUserId();
+                    application.getCarrier().addFriend(friendUserAddress,UserID);
+                } catch (ElastosException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -201,7 +229,7 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
 
 
 
-    private void testGson(){
+//    private void testGson(){
 
 //        Action action = new Action("1",1,1);
 //        Gson gson = new Gson();
@@ -210,7 +238,7 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
 //
 //        Action action1 = gson.fromJson(json,Action.class);
 //        Log.i("gson",action1.toString());
-    }
+//    }
 
     private void initCarrierNet(){
 
@@ -274,12 +302,17 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
         }
 
         //2.2 通过好友验证
-        public void onFriendRequest(Carrier carrier, String userId, UserInfo info, String hello) {
+        public void onFriendRequest(Carrier carrier, String userId, UserInfo info, String userAddr) {
             try {
 
-                if (hello.equals("auto-accepted")) {
-                    carrier.AcceptFriend(userId);
-                }
+//                if (hello.equals("auto-accepted")) {
+//                    carrier.AcceptFriend(userId);
+//                }
+                carrier.AcceptFriend(userId);
+                application.setFriendID(userId);
+                application.setFriendAddr(userAddr);
+
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
