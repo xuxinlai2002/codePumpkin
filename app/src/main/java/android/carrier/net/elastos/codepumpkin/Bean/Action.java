@@ -16,7 +16,7 @@ public class Action {
      * 若 type = 1   value为步数
      * 若 type = 2   value为角度
      */
-    private double value;
+    private float value;
 
     /**用户id*/
     private String userId;
@@ -54,15 +54,13 @@ public class Action {
         this.type = type;
     }
 
-    public double getValue() {
+    public float getValue() {
         return value;
     }
 
-    public void setValue(double value) {
+    public void setValue(float value) {
         this.value = value;
     }
-
-
 
 
     @Override
@@ -70,6 +68,7 @@ public class Action {
         return "Action{" +
                 "type=" + type +
                 ", value=" + value +
+                ", userId='" + userId + '\'' +
                 '}';
     }
 }

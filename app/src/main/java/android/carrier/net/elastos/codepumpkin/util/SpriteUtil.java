@@ -1,9 +1,13 @@
 package android.carrier.net.elastos.codepumpkin.util;
 
+import android.carrier.net.elastos.codepumpkin.Bean.Action;
 import android.carrier.net.elastos.codepumpkin.Bean.GameUser;
 import android.carrier.net.elastos.codepumpkin.common.GameCommon;
 import android.util.Log;
 
+import org.cocos2d.actions.interval.CCFadeIn;
+import org.cocos2d.actions.interval.CCJumpBy;
+import org.cocos2d.actions.interval.CCSpawn;
 import org.cocos2d.nodes.CCLabel;
 import org.cocos2d.nodes.CCLabelAtlas;
 import org.cocos2d.nodes.CCSprite;
@@ -14,6 +18,7 @@ import org.cocos2d.types.CGRect;
 import org.cocos2d.types.CGSize;
 import org.cocos2d.types.ccColor3B;
 
+import java.util.List;
 import java.util.Random;
 
 public class SpriteUtil {
@@ -31,6 +36,27 @@ public class SpriteUtil {
     }
 
     /***
+     * 创建回放的文字
+     * @return
+     */
+    public static CCLabel createReplayText(List<Action> list,CGPoint point, float value) {
+        StringBuilder sb = new StringBuilder("");
+        for (int i =0 ;i<list.size();i++){
+            if(list.get(i).getType() == 1){
+                sb.append("step").append("  ").append(list.get(i).getValue()).append("\n");
+            }else{
+                sb.append("turn").append("  ").append(list.get(i).getValue()>0?"right":"left").append("\n");
+            }
+        }
+        CCLabel label = CCLabel.labelWithString("abc\n456", "font/consola.ttf", GameCommon.DEFAULT_FONT_SIZE);
+        label.setColor(ccColor3B.ccBLACK);
+        label.setPosition(point);
+        label.setUserData(value);
+
+        return label;
+    }
+
+    /***
      * 创建步数的字符
      * @param text
      * @param point
@@ -43,7 +69,29 @@ public class SpriteUtil {
         label.setColor(ccColor3B.ccBLACK);
         label.setPosition(point);
         label.setUserData(value);
+        label.setOpacity(0);
         return label;
+    }
+
+    /***
+     * 创建toast 提示
+     * @return
+     */
+    public static CCLabel createToast() {
+
+        CCLabel label = CCLabel.labelWithString("提示", "font/consola.ttf", GameCommon.DEFAULT_FONT_SIZE * 1.5f);
+        label.setColor(ccColor3B.ccYELLOW);
+        label.setPosition(cratePoint(boxSize.width/2,boxSize.height-GameCommon.DEFAULT_SIZE));
+        label.setOpacity(0);
+        return label;
+    }
+
+    /**创建显示图标的动画图标*/
+    public static CCSpawn createShowIconAction(CGPoint targetPoint){
+        //CCAction animate = CCFadeIn.action();
+        CCJumpBy ccJumpBy = CCJumpBy.action(GameCommon.DEFAULT_TIME,targetPoint,10,1);
+
+        return CCSpawn.actions(ccJumpBy, CCFadeIn.action(GameCommon.DEFAULT_TIME));
     }
 
     /***

@@ -4,7 +4,8 @@ public class GameCommon {
 
     public static final int DEFAULT_SIZE = 60;
     public static final float DEFAULT_TIME = 0.1f;
-    public static final float DEFAULT_FONT_SIZE = 30f;
+    public static final float DEFAULT_FONT_SIZE = 24f;
+    public static final float DEFAULT_FONT_HEIGHT = 20f;
     public static final int PUMPKIN_COUNT = 5;
     public static final int BUSH_COUNT = 5;
 

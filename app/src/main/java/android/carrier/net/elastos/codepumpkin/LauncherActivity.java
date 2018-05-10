@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 
 import com.google.gson.Gson;
 
@@ -30,14 +31,14 @@ import java.util.List;
 
 public class LauncherActivity extends AppCompatActivity implements View.OnClickListener{
 
-    private String friendUserId = "CicPM5B3Hfr4GdqqDy3zYkqR59gE1G9WJYt2Bygy9iZd";
-    private String friendUserAddress = " Skk3tug8K2zgqrdg9LebZLUFYRNyQpJpbjfkrAZ6FfxE9fLmp5mD";
+    private String friendUserId = "9U6E5ZkvtW8pVpo8iSDDyoZ4BccFTRKwRUVbLqYrXY6T";
+    private String friendUserAddress = " KcPRVCGkWdt49w9bpJFRyXySnCxNvDAibyn23rau42fVqNehc4c4";
 
 
 
-    private Button btnStart;
-    private Button btnMyInfo;
-    private Button btnAddFriend;
+    private ImageButton btnStart;
+    private ImageButton btnMyInfo;
+    private ImageButton btnAddFriend;
 
     //TODO
     private String TAG="C LauncherActivity";
@@ -54,15 +55,27 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
         testGson();
         initCarrierNet();
 
+        try {
+            if(!application.getCarrier().getUserId().equals("iYdaECpcRjrnDrZLyDUk77ByNj5Mvvg9evz7L5rr4ch")){  //小手机
+                friendUserId = "iYdaECpcRjrnDrZLyDUk77ByNj5Mvvg9evz7L5rr4ch";
+                friendUserAddress = "2aKDxyxQX2g5mLeZhiNY8Krhn8WN9HMGTmy7tBGGQUWoFdwDzxJR";
+
+            }
+            List<FriendInfo> list = application.getCarrier().getFriends();
+            Log.i(TAG,list.toString());
+        } catch (ElastosException e) {
+            e.printStackTrace();
+        }
+
     }
 
 
 
 
     private void initView(){
-        this.btnStart = (Button)findViewById(R.id.btn_start);
-        this.btnMyInfo = (Button)findViewById(R.id.btn_my_info);
-        this.btnAddFriend = (Button)findViewById(R.id.btn_add_friend);
+        this.btnStart = (ImageButton) findViewById(R.id.btn_start);
+        this.btnMyInfo = (ImageButton)findViewById(R.id.btn_my_info);
+        this.btnAddFriend = (ImageButton)findViewById(R.id.btn_add_friend);
         this.btnStart.setOnClickListener(this);
         this.btnMyInfo.setOnClickListener(this);
         this.btnAddFriend.setOnClickListener(this);

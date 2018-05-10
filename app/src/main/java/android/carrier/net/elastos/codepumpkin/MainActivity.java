@@ -4,22 +4,32 @@ import android.carrier.net.elastos.codepumpkin.Bean.Action;
 import android.carrier.net.elastos.codepumpkin.common.GameCommon;
 import android.carrier.net.elastos.codepumpkin.layer.GameCCLayer;
 import android.carrier.net.elastos.codepumpkin.layer.LauncherCCLayer;
+import android.carrier.net.elastos.codepumpkin.ui.StepDialog;
+import android.carrier.net.elastos.codepumpkin.ui.adapter.DialogAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 
 import com.google.gson.Gson;
+import  com.google.gson.stream.JsonReader;
+
 
 import org.cocos2d.layers.CCScene;
 import org.cocos2d.nodes.CCDirector;
 import org.cocos2d.opengl.CCGLSurfaceView;
+
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -31,6 +41,8 @@ public class MainActivity extends AppCompatActivity {
     private GameCCLayer gameCCLayer;
 
     private Gson gson;
+
+    public StepDialog dialog;
 
 
     @Override
@@ -53,9 +65,30 @@ public class MainActivity extends AppCompatActivity {
 
         gson = new Gson();
         createAndBindBroadcast();
-        //sceneHandler.sendMessageAtTime(new Message(),SystemClock.uptimeMillis()+1000);
+
+        initDialog();
 
     }
+
+
+    private void initDialog(){
+//        List<Action> list = new ArrayList<>();
+//        list.add(new Action(1,60));
+//        list.add(new Action(2,90));
+//        list.add(new Action(2,90));
+//        list.add(new Action(2,90));
+//        list.add(new Action(2,90));
+//        list.add(new Action(1,60));
+//        list.add(new Action(1,60));
+//        list.add(new Action(1,60));
+//        list.add(new Action(1,60));
+//        list.add(new Action(1,60));
+//        list.add(new Action(1,60));
+//        list.add(new Action(1,60));
+        dialog = new StepDialog(this,new DialogAdapter(this,null));
+
+    }
+
 
     private void test(){
         Intent intent = new Intent();
@@ -136,6 +169,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         CCDirector.sharedDirector().end();
+        unregisterReceiver(actionReceiver);
         // 结束，游戏退出时调用
     }
 
@@ -148,7 +182,9 @@ public class MainActivity extends AppCompatActivity {
             Log.i("info",message);
 
             try{
-                Action action = gson.fromJson(message, Action.class);
+                JsonReader reader = new JsonReader(new StringReader(message));
+                reader.setLenient(true);
+                Action action = gson.fromJson(reader, Action.class);
                 gameCCLayer.actionHandler(action);
             }catch (Exception e){
                 e.printStackTrace();

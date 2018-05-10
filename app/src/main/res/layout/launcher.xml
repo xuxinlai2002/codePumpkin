@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@color/white">
 
 
     <ImageView
@@ -28,25 +29,31 @@
         android:layout_height="match_parent"
         android:orientation="horizontal">
 
-        <Button
+        <ImageButton
             android:id="@+id/btn_start"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="开始游戏" />
+            android:src="@drawable/btn_start_selector"
+            android:background="@null"
+           />
 
-        <Button
+        <ImageButton
             android:id="@+id/btn_my_info"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="我的信息" />
+            android:src="@drawable/btn_myinfo_selector"
+            android:background="@null"
+            />
 
-        <Button
+        <ImageButton
             android:id="@+id/btn_add_friend"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="添加好友" />
+            android:src="@drawable/btn_addf_selector"
+            android:background="@null"
+             />
     </LinearLayout>
 </LinearLayout>
