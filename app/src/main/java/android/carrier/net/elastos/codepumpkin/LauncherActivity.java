@@ -1,6 +1,6 @@
 package android.carrier.net.elastos.codepumpkin;
 
-import android.carrier.net.elastos.codepumpkin.Bean.Action;
+
 import android.carrier.net.elastos.codepumpkin.Bean.SysApp;
 import android.carrier.net.elastos.codepumpkin.common.GameCommon;
 import android.carrier.net.elastos.common.NetOptions;
@@ -8,7 +8,9 @@ import android.carrier.net.elastos.common.Synchronizer;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -16,8 +18,12 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.yzq.zxinglibrary.android.CaptureActivity;
+import com.yzq.zxinglibrary.bean.ZxingConfig;
+import com.yzq.zxinglibrary.common.Constant;
 
 import org.elastos.carrier.AbstractCarrierHandler;
 import org.elastos.carrier.Carrier;
@@ -28,6 +34,10 @@ import org.elastos.carrier.exceptions.ElastosException;
 
 import java.io.File;
 import java.util.List;
+
+import com.yanzhenjie.permission.Action;
+import com.yanzhenjie.permission.AndPermission;
+import com.yanzhenjie.permission.Permission;
 
 public class LauncherActivity extends AppCompatActivity implements View.OnClickListener{
 
@@ -44,6 +54,9 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
     private String TAG="C LauncherActivity";
     private String AUTO = "auto-accepted";
     private SysApp application;
+
+    //
+    private int REQUEST_CODE_SCAN = 111;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,13 +118,52 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
 
                     break;
                 case R.id.btn_add_friend:
+
+                    AndPermission.with(this)
+                            .permission(Permission.CAMERA, Permission.READ_EXTERNAL_STORAGE)
+                            .onGranted(new Action() {
+                                @Override
+                                public void onAction(List<String> permissions) {
+                                    Intent intent = new Intent(LauncherActivity.this, CaptureActivity.class);
+
+                                    /*ZxingConfig是配置类  可以设置是否显示底部布局，闪光灯，相册，是否播放提示音  震动等动能
+                                     * 也可以不传这个参数
+                                     * 不传的话  默认都为默认不震动  其他都为true
+                                     * */
+
+                                    ZxingConfig config = new ZxingConfig();
+                                    config.setPlayBeep(true);
+                                    config.setShake(true);
+                                    intent.putExtra(Constant.INTENT_ZXING_CONFIG, config);
+
+                                    startActivityForResult(intent, REQUEST_CODE_SCAN);
+                                }
+                            })
+                            .onDenied(new Action() {
+                                @Override
+                                public void onAction(List<String> permissions) {
+                                    Uri packageURI = Uri.parse("package:" + getPackageName());
+                                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, packageURI);
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                                    startActivity(intent);
+
+                                    Toast.makeText(LauncherActivity.this, "没有权限无法扫描呦", Toast.LENGTH_LONG).show();
+                                }
+                            }).start();
+
                     //TODO
                     //get the QRCode Info
-
-                    Log.i(TAG,"on click btn_add_friend :" + strAddr + "," + strID);
-                    application.setFriendID(friendUserId);
-                    application.setFriendAddr(friendUserAddress);
-                    application.getCarrier().addFriend(friendUserAddress,AUTO);
+                    //如果不传 ZxingConfig的话，两行代码就能搞定了
+//                    Intent intent = new Intent(LauncherActivity.this, CaptureActivity.class);
+//                    //intent.putExtra(Constant.INTENT_ZXING_CONFIG, config);
+//                    startActivityForResult(intent, REQUEST_CODE_SCAN);
+//
+//
+//                    Log.i(TAG,"on click btn_add_friend :" + strAddr + "," + strID);
+//                    application.setFriendID(friendUserId);
+//                    application.setFriendAddr(friendUserAddress);
+//                    application.getCarrier().addFriend(friendUserAddress,AUTO);
 
 
                     break;
@@ -123,6 +175,21 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
 
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // 扫描二维码/条码回传
+        if (requestCode == REQUEST_CODE_SCAN && resultCode == RESULT_OK) {
+            if (data != null) {
+
+                String content = data.getStringExtra(Constant.CODED_CONTENT);
+                Log.i(TAG,"on click onActivityResult is :" + content);
+                //result.setText("扫描结果为：" + content);
+            }
+        }
+    }
+
     private void initLandscape() {
         /* 隐藏标题栏 */
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -132,15 +199,17 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     }
 
+
+
     private void testGson(){
 
-        Action action = new Action("1",1,1);
-        Gson gson = new Gson();
-        String json = gson.toJson(action);
-        Log.i("gson",json);
-
-        Action action1 = gson.fromJson(json,Action.class);
-        Log.i("gson",action1.toString());
+//        Action action = new Action("1",1,1);
+//        Gson gson = new Gson();
+//        String json = gson.toJson(action);
+//        Log.i("gson",json);
+//
+//        Action action1 = gson.fromJson(json,Action.class);
+//        Log.i("gson",action1.toString());
     }
 
     private void initCarrierNet(){
