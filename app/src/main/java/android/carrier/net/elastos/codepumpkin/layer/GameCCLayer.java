@@ -655,16 +655,32 @@ public class GameCCLayer extends CCLayer {
 
     private void initElement(){
 
-        // 添加南瓜和障碍物
-        for (int i = 0; i < GameCommon.PUMPKIN_COUNT; i++) {
-            pumpkinList.add(randomPositionBySprite(SpriteUtil.createPumpkin()));
+        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(480,310)));
+        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(320,270)));
+        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(530,270)));
+        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(210,250)));
+        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(160,360)));
+
+        bushList.add(SpriteUtil.createBushByPoint(CGPoint.make(590,220)));
+        bushList.add(SpriteUtil.createBushByPoint(CGPoint.make(192,170)));
+        bushList.add(SpriteUtil.createBushByPoint(CGPoint.make(100,290)));
+
+        for (int i = 0; i <pumpkinList.size(); i++) {
             this.addChild(pumpkinList.get(i), 10);
         }
-
-        for (int i = 0; i < GameCommon.BUSH_COUNT; i++) {
-            bushList.add(randomPositionBySprite(SpriteUtil.createBush()));
-            this.addChild(bushList.get(i), 10);
+        for (int i = 0; i < bushList.size(); i++) {
+           this.addChild(bushList.get(i), 10);
         }
+//        // 添加南瓜和障碍物
+//        for (int i = 0; i < GameCommon.PUMPKIN_COUNT; i++) {
+//            pumpkinList.add(randomPositionBySprite(SpriteUtil.createPumpkin()));
+//            this.addChild(pumpkinList.get(i), 10);
+//        }
+//
+//        for (int i = 0; i < GameCommon.BUSH_COUNT; i++) {
+//            bushList.add(randomPositionBySprite(SpriteUtil.createBush()));
+//            this.addChild(bushList.get(i), 10);
+//        }
     }
 
 
@@ -760,6 +776,8 @@ public class GameCCLayer extends CCLayer {
         }
         return view;
     }
+
+
 
 
 }

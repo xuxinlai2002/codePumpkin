@@ -118,9 +118,24 @@ public class SpriteUtil {
 
     }
 
+    public static CCSprite createPumpkinByPoint(CGPoint p) {
+        CCSprite s = new CCSprite("pumpkin.png");
+        s.setUserData(1);    // 1 存在  0已经吃掉
+        s.setPosition(p);
+        //s.setAnchorPoint(CGPoint.getZero());
+        return s;
+    }
+
     public static CCSprite createPumpkin() {
         CCSprite s = new CCSprite("pumpkin.png");
         s.setUserData(1);    // 1 存在  0已经吃掉
+        //s.setAnchorPoint(CGPoint.getZero());
+        return s;
+    }
+
+    public static CCSprite createBushByPoint(CGPoint p) {
+        CCSprite s = new CCSprite("bush.png");
+        s.setPosition(p);
         //s.setAnchorPoint(CGPoint.getZero());
         return s;
     }
