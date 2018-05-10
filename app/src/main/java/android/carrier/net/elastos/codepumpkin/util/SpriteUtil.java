@@ -79,8 +79,8 @@ public class SpriteUtil {
      */
     public static CCLabel createToast() {
 
-        CCLabel label = CCLabel.labelWithString("提示", "font/consola.ttf", GameCommon.DEFAULT_FONT_SIZE * 1.5f);
-        label.setColor(ccColor3B.ccYELLOW);
+        CCLabel label = CCLabel.labelWithString("提示", "font/consola.ttf", GameCommon.DEFAULT_FONT_SIZE * 1.2f);
+        label.setColor(ccColor3B.ccRED);
         label.setPosition(cratePoint(boxSize.width/2,boxSize.height-GameCommon.DEFAULT_SIZE));
         label.setOpacity(0);
         return label;

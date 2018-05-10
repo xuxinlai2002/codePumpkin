@@ -1,58 +1,40 @@
 package android.carrier.net.elastos.codepumpkin.layer;
 
 import android.carrier.net.elastos.codepumpkin.Bean.Action;
+import android.carrier.net.elastos.codepumpkin.Bean.GameElement;
 import android.carrier.net.elastos.codepumpkin.Bean.GameUser;
-import android.carrier.net.elastos.codepumpkin.Bean.SysApp;
 import android.carrier.net.elastos.codepumpkin.MainActivity;
 import android.carrier.net.elastos.codepumpkin.common.GameCommon;
 import android.carrier.net.elastos.codepumpkin.util.SpriteUtil;
-import android.carrier.net.elastos.codepumpkin.util.ToastUtil;
 import android.carrier.net.elastos.p2pNet.CarrierExecutor;
 import android.content.Context;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.animation.Animation;
 
-import org.cocos2d.actions.base.CCAction;
-import org.cocos2d.actions.base.CCFiniteTimeAction;
 import org.cocos2d.actions.base.CCRepeatForever;
 import org.cocos2d.actions.instant.CCCallFunc;
-import org.cocos2d.actions.instant.CCCallFuncN;
 import org.cocos2d.actions.interval.CCAnimate;
 import org.cocos2d.actions.interval.CCFadeIn;
-import org.cocos2d.actions.interval.CCIntervalAction;
-import org.cocos2d.actions.interval.CCJumpBy;
 import org.cocos2d.actions.interval.CCMoveBy;
 import org.cocos2d.actions.interval.CCRotateBy;
 import org.cocos2d.actions.interval.CCSequence;
 import org.cocos2d.actions.interval.CCSpawn;
-import org.cocos2d.extensions.scroll.CCScrollView;
-import org.cocos2d.extensions.scroll.CCScrollViewDelegate;
-import org.cocos2d.extensions.scroll.CCTableView;
-import org.cocos2d.extensions.scroll.CCTableViewCell;
-import org.cocos2d.extensions.scroll.CCTableViewDataSource;
-import org.cocos2d.extensions.scroll.CCTableViewDelegate;
 import org.cocos2d.layers.CCLayer;
 import org.cocos2d.nodes.CCAnimation;
 import org.cocos2d.nodes.CCDirector;
 import org.cocos2d.nodes.CCLabel;
-import org.cocos2d.nodes.CCLabelAtlas;
-import org.cocos2d.nodes.CCNode;
 import org.cocos2d.nodes.CCSprite;
 import org.cocos2d.nodes.CCSpriteFrame;
 import org.cocos2d.nodes.CCSpriteFrameCache;
 import org.cocos2d.types.CGPoint;
 import org.cocos2d.types.CGRect;
-import org.cocos2d.types.CGSize;
-import org.cocos2d.types.ccColor3B;
-import org.cocos2d.types.util.CGPointUtil;
-import org.elastos.carrier.Carrier;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import android.app.Application;
-
-public class GameCCLayer extends CCLayer implements CCTableViewDataSource, CCTableViewDelegate {
+//implements CCTableViewDataSource, CCTableViewDelegate
+public class GameCCLayer extends CCLayer {
 
     private Context context;
 
@@ -64,7 +46,7 @@ public class GameCCLayer extends CCLayer implements CCTableViewDataSource, CCTab
     private CCSprite spriteLeft;
     private CCSprite spriteRight;
     private CCSprite spriteReset;
-    private CCTableView tableActions;
+//    private CCTableView tableActions;
 
     private CCSpawn actionTurnLeft;
     private CCSpawn actionTurnRight;
@@ -82,7 +64,6 @@ public class GameCCLayer extends CCLayer implements CCTableViewDataSource, CCTab
     private List<CCLabel> stepPromptList = new ArrayList<CCLabel>();
 
     private List<Action> actionList = new ArrayList<>();
-    private List<String> testList = new ArrayList<>();
     private int actionIndex = 0;
     private String currentUser = "";
 
@@ -113,7 +94,6 @@ public class GameCCLayer extends CCLayer implements CCTableViewDataSource, CCTab
 
         carrierExecutorInst = new CarrierExecutor(this.context);
         currentUser = carrierExecutorInst.getUserID();
-        initStepTableView();
 
         initCtrlView();
         initView();
@@ -127,6 +107,13 @@ public class GameCCLayer extends CCLayer implements CCTableViewDataSource, CCTab
 
 //    public void update(float dt){
 //        actionLoop();
+//    }
+
+
+//    private void playAudio(){
+//        SoundEngine engine = new SoundEngine();
+//        engine.playEffect(context, R.raw.good_zh);
+//
 //    }
 
     /**
@@ -157,7 +144,6 @@ public class GameCCLayer extends CCLayer implements CCTableViewDataSource, CCTab
         //CGPoint p = SpriteUtil.converPx(event.getX(),event.getY());
 
         Log.i("action", p.toString());
-
         //移动按钮
         if (SpriteUtil.isContainsPointByView(spriteStep, p)) {
             if (spriteStep1.getOpacity() == 0) {
@@ -241,6 +227,26 @@ public class GameCCLayer extends CCLayer implements CCTableViewDataSource, CCTab
         }
     }
 
+    /***
+     * 控件处理
+     */
+    public void ElementHandler(List<GameElement> pumpkins,List<GameElement> bush){
+        // 添加南瓜和障碍物
+        for (int i = 0; i < pumpkins.size(); i++) {
+            CCSprite cc = SpriteUtil.createPumpkin();
+            cc.setPosition(pumpkins.get(i).getX(),pumpkins.get(i).getY());
+            pumpkinList.add(cc);
+            this.addChild(pumpkinList.get(i), 10);
+        }
+
+        for (int i = 0; i < bush.size(); i++) {
+            CCSprite cc = SpriteUtil.createBush();
+            cc.setPosition(bush.get(i).getX(),bush.get(i).getY());
+            bushList.add(cc);
+            this.addChild(bushList.get(i), 10);
+        }
+    }
+
     /**
      * 事件处理
      */
@@ -287,7 +293,7 @@ public class GameCCLayer extends CCLayer implements CCTableViewDataSource, CCTab
     private int getUserIndex(String userId) {
 
         int nRet = 0;
-        if (!userId.equals(gameUserList.get(1).getId())) {
+        if (!userId.equals(gameUserList.get(0).getId())) {
             nRet = 1;
         }
 //        } if(!userId.equals(carrierExecutorInst.getUserID())){
@@ -322,6 +328,8 @@ public class GameCCLayer extends CCLayer implements CCTableViewDataSource, CCTab
 
             for (int i = 0; i < nUserSize; i++) {
                 if (SpriteUtil.isContainsRect(gameUserList.get(i).getSprite(), pumpkinList.get(j))) {
+                    //播放音效
+                    ((MainActivity)context).playAudio();
                     pumpkinList.get(j).setUserData(0);      //吃掉
                     pumpkinList.get(j).setOpacity(0);
                     gameUserList.get(i).setPumpkinCount(gameUserList.get(i).getPumpkinCount() + 1);
@@ -448,15 +456,7 @@ public class GameCCLayer extends CCLayer implements CCTableViewDataSource, CCTab
         spriteGrad.setScale(0.4);
 
 
-//        CCSpriteFrameCache c = CCSpriteFrameCache.sharedSpriteFrameCache();
-//        c.addSpriteFrames("grad-2.plist");
-//        c.addSpriteFrames("")
-//        ArrayList<CCSpriteFrame> frames = new ArrayList<>();
-//        for(int i=1;i<=8;i++){
-//            frames.add(c.getSpriteFrame((i)+".png"));
-//        }
-//        CCAnimation a = CCAnimation.animationWithFrames(frames,1);
-//        spriteGrad.runAction(CCAnimate.action(a));
+
 
         this.addChild(spriteBg, 0, 0);
 
@@ -466,6 +466,27 @@ public class GameCCLayer extends CCLayer implements CCTableViewDataSource, CCTab
 
         spriteToast = SpriteUtil.createToast();
         this.addChild(spriteToast, 100);
+    }
+
+    private void playUserAnimation(){
+        CCSpriteFrameCache c1 = CCSpriteFrameCache.initSpriteFrameCache();
+        CCSpriteFrameCache c2 = CCSpriteFrameCache.initSpriteFrameCache();
+        c1.addSpriteFrames("grad-1.plist");
+        c2.addSpriteFrames("grad-2.plist");
+        //c.addSpriteFrames("")
+        ArrayList<CCSpriteFrame> frames1 = new ArrayList<>();
+        ArrayList<CCSpriteFrame> frames2 = new ArrayList<>();
+        for(int i=1;i<=8;i++){
+            frames1.add(c1.getSpriteFrame((i)+".png"));
+            frames2.add(c2.getSpriteFrame((i)+".png"));
+        }
+        gameUserList.get(0).getSprite().runAction(CCRepeatForever.actionWithAction(CCAnimate.action(CCAnimation.animationWithFrames(frames1,GameCommon.DEFAULT_TIME*3))));
+        gameUserList.get(1).getSprite().runAction(CCRepeatForever.actionWithAction(CCAnimate.action(CCAnimation.animationWithFrames(frames2,GameCommon.DEFAULT_TIME*3))));
+
+//        CCSpriteFrameCache.initSpriteFrameCache().getSpriteFrame()
+//        CCAnimation animation = CCAnimation.animation("");
+//        for (int i =)
+//        animation.addFrame();
     }
 
     private void toast(String text) {
@@ -526,52 +547,52 @@ public class GameCCLayer extends CCLayer implements CCTableViewDataSource, CCTab
 
     }
 
-    private void initStepTableView() {
-        for (int i = 0; i < 3; i++) {
-            testList.add("888" + i);
-        }
-        tableActions = CCTableView.view(this,getContentSize());
-//        tableActions.direction = 1;
-        tableActions.tDelegate = this;
-        tableActions.setPosition(SpriteUtil.cratePoint(getContentSize().width / 2, getContentSize().height / 2));
-        // tableActions.
-        // tableActions.
-        this.addChild(tableActions, 101);
-
-        tableActions.reloadData();
-    }
-
-    @Override
-    public void tableCellTouched(CCTableView ccTableView, CCTableViewCell ccTableViewCell) {
-        Log.i("table", "滑动啦");
-        Log.i("table", ccTableView.getPosition().toString());
-        Log.i("table", ccTableView.getContentSize().toString());
-
-    }
-
-    @Override
-    public CGSize cellSizeForTable(CCTableView ccTableView) {
-        return CGSize.make(100,100);
-    }
-
-
-    //构建列表子项
-    @Override
-    public CCTableViewCell tableCellAtIndex(CCTableView ccTableView, int i) {
-        Log.i("table", i + "加载了");
-
-        CCTableViewCell cc = new CCTableViewCell();
-        CCLabel label = CCLabel.labelWithString("111", "font/consola.ttf", GameCommon.DEFAULT_FONT_SIZE);
-        label.setColor(ccColor3B.ccBLACK);
-        label.setPosition(CGPoint.zero());
-        cc.addChild(label, 50);
-        return cc;
-    }
-
-    @Override
-    public int numberOfCellsInTableView(CCTableView ccTableView) {
-        return testList.size();
-    }
+//    private void initStepTableView() {
+//        for (int i = 0; i < 3; i++) {
+//            testList.add("888" + i);
+//        }
+//        tableActions = CCTableView.view(this,getContentSize());
+////        tableActions.direction = 1;
+//        tableActions.tDelegate = this;
+//        tableActions.setPosition(SpriteUtil.cratePoint(getContentSize().width / 2, getContentSize().height / 2));
+//        // tableActions.
+//        // tableActions.
+//        this.addChild(tableActions, 101);
+//
+//        tableActions.reloadData();
+//    }
+//
+//    @Override
+//    public void tableCellTouched(CCTableView ccTableView, CCTableViewCell ccTableViewCell) {
+//        Log.i("table", "滑动啦");
+//        Log.i("table", ccTableView.getPosition().toString());
+//        Log.i("table", ccTableView.getContentSize().toString());
+//
+//    }
+//
+//    @Override
+//    public CGSize cellSizeForTable(CCTableView ccTableView) {
+//        return CGSize.make(100,100);
+//    }
+//
+//
+//    //构建列表子项
+//    @Override
+//    public CCTableViewCell tableCellAtIndex(CCTableView ccTableView, int i) {
+//        Log.i("table", i + "加载了");
+//
+//        CCTableViewCell cc = new CCTableViewCell();
+//        CCLabel label = CCLabel.labelWithString("111", "font/consola.ttf", GameCommon.DEFAULT_FONT_SIZE);
+//        label.setColor(ccColor3B.ccBLACK);
+//        label.setPosition(CGPoint.zero());
+//        cc.addChild(label, 50);
+//        return cc;
+//    }
+//
+//    @Override
+//    public int numberOfCellsInTableView(CCTableView ccTableView) {
+//        return testList.size();
+//    }
 
 
 //    private void loadAnimation(){
@@ -607,7 +628,8 @@ public class GameCCLayer extends CCLayer implements CCTableViewDataSource, CCTab
             //添加自身玩家
             GameUser myUser = new GameUser();
 
-            myUser.setId(carrierExecutorInst.getUserID());
+          //  myUser.setId(carrierExecutorInst.getUserID());
+            myUser.setId("DATYhHwvqN64ZQHeDkegT8cPn9Qw8wxjLC8LqXhMXfWG");
             myUser.setDirection(1);
             myUser.setSprite(SpriteUtil.createGameUser(0));
             myUser.setStartPosition(myUser.getSprite().getPosition());
@@ -615,29 +637,34 @@ public class GameCCLayer extends CCLayer implements CCTableViewDataSource, CCTab
             this.addChild(myUser.getSprite(), 5);
             // 添加好友玩家
             GameUser friendUser = new GameUser();
-            friendUser.setId(carrierExecutorInst.getFriendID());
+           // friendUser.setId(carrierExecutorInst.getFriendID());
+            friendUser.setId("9U6E5ZkvtW8pVpo8iSDDyoZ4BccFTRKwRUVbLqYrXY6T");
             friendUser.setDirection(1);
             friendUser.setSprite(SpriteUtil.createGameUser(1));
             friendUser.setStartPosition(friendUser.getSprite().getPosition());
             gameUserList.add(friendUser);
             this.addChild(friendUser.getSprite(), 5);
 
-
-            // 添加南瓜和障碍物
-            for (int i = 0; i < GameCommon.PUMPKIN_COUNT; i++) {
-                pumpkinList.add(randomPositionBySprite(SpriteUtil.createPumpkin()));
-                this.addChild(pumpkinList.get(i), 10);
-            }
-
-            for (int i = 0; i < GameCommon.BUSH_COUNT; i++) {
-                bushList.add(randomPositionBySprite(SpriteUtil.createBush()));
-                this.addChild(bushList.get(i), 10);
-            }
+            initElement();
         }
 
-
+        playUserAnimation();
         createStepPrompt();
 
+    }
+
+    private void initElement(){
+
+        // 添加南瓜和障碍物
+        for (int i = 0; i < GameCommon.PUMPKIN_COUNT; i++) {
+            pumpkinList.add(randomPositionBySprite(SpriteUtil.createPumpkin()));
+            this.addChild(pumpkinList.get(i), 10);
+        }
+
+        for (int i = 0; i < GameCommon.BUSH_COUNT; i++) {
+            bushList.add(randomPositionBySprite(SpriteUtil.createBush()));
+            this.addChild(bushList.get(i), 10);
+        }
     }
 
 
