@@ -11,7 +11,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
+import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -19,13 +21,15 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import com.google.gson.Gson;
-import  com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonReader;
 
 
 import org.cocos2d.layers.CCScene;
 import org.cocos2d.nodes.CCDirector;
 import org.cocos2d.opengl.CCGLSurfaceView;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +48,8 @@ public class MainActivity extends AppCompatActivity {
 
     public StepDialog dialog;
 
+    private MediaPlayer mediaPlayer;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +59,6 @@ public class MainActivity extends AppCompatActivity {
         initLandscape();
         getDisplayInfo();
         initCocos();
-
 
 
         launcherScene = CCScene.node();  //启动页面场景
@@ -67,46 +72,45 @@ public class MainActivity extends AppCompatActivity {
         createAndBindBroadcast();
 
         initDialog();
+        initMediaPlayer();
+    }
+
+    private void initMediaPlayer() {
+        mediaPlayer = MediaPlayer.create(this, R.raw.good_zh);
+        mediaPlayer.setLooping(false);//设置为循环播放
+        //    mediaPlayer.prepareAsync();
+    }
+
+
+    /**播放音乐*/
+    public void playAudio(){
+       // mediaPlayer.reset();
+        mediaPlayer.start();
+    }
+
+    private void initDialog() {
+        dialog = new StepDialog(this, new DialogAdapter(this, null));
 
     }
 
 
-    private void initDialog(){
-//        List<Action> list = new ArrayList<>();
-//        list.add(new Action(1,60));
-//        list.add(new Action(2,90));
-//        list.add(new Action(2,90));
-//        list.add(new Action(2,90));
-//        list.add(new Action(2,90));
-//        list.add(new Action(1,60));
-//        list.add(new Action(1,60));
-//        list.add(new Action(1,60));
-//        list.add(new Action(1,60));
-//        list.add(new Action(1,60));
-//        list.add(new Action(1,60));
-//        list.add(new Action(1,60));
-        dialog = new StepDialog(this,new DialogAdapter(this,null));
-
-    }
-
-
-    private void test(){
+    private void test() {
         Intent intent = new Intent();
         intent.setAction(GameCommon.ACTION_MESSAGE);
-        Action a = new Action("CicPM5B3Hfr4GdqqDy3zYkqR59gE1G9WJYt2Bygy9iZd",1,60);
-        intent.putExtra(GameCommon.ACTION_VALUE,gson.toJson( a));
+        Action a = new Action("CicPM5B3Hfr4GdqqDy3zYkqR59gE1G9WJYt2Bygy9iZd", 1, 60);
+        intent.putExtra(GameCommon.ACTION_VALUE, gson.toJson(a));
         this.sendBroadcast(intent);
     }
 
 
-    private void createAndBindBroadcast(){
+    private void createAndBindBroadcast() {
         actionReceiver = new ActionReceiver();
         // 1. 实例化BroadcastReceiver子类 &  IntentFilter
         IntentFilter intentFilter = new IntentFilter();
 
         // 2. 设置接收广播的类型
         intentFilter.addAction(GameCommon.ACTION_MESSAGE);
-        registerReceiver(actionReceiver,intentFilter);
+        registerReceiver(actionReceiver, intentFilter);
     }
 
     private void getDisplayInfo() {
@@ -114,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
                 .getSystemService(Context.WINDOW_SERVICE);
         GameCommon.deviceWidth = wm.getDefaultDisplay().getWidth();
         GameCommon.deviceHeight = wm.getDefaultDisplay().getHeight();
-        Log.i("device",GameCommon.deviceWidth+","+GameCommon.deviceHeight);
+        Log.i("device", GameCommon.deviceWidth + "," + GameCommon.deviceHeight);
     }
 
 
@@ -167,9 +171,18 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         CCDirector.sharedDirector().end();
         unregisterReceiver(actionReceiver);
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+
+            mediaPlayer.reset();
+
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
+        super.onDestroy();
+
         // 结束，游戏退出时调用
     }
 
@@ -179,22 +192,20 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String message = intent.getStringExtra(GameCommon.ACTION_VALUE);
-            Log.i("info",message);
+            Log.i("info", message);
 
-            try{
+            try {
                 JsonReader reader = new JsonReader(new StringReader(message));
                 reader.setLenient(true);
                 Action action = gson.fromJson(reader, Action.class);
                 gameCCLayer.actionHandler(action);
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
         }
 
     }
-
-
 
 
 }

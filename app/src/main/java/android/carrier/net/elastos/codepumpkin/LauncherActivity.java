@@ -56,9 +56,9 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
         initCarrierNet();
 
         try {
-            if(!application.getCarrier().getUserId().equals("iYdaECpcRjrnDrZLyDUk77ByNj5Mvvg9evz7L5rr4ch")){  //小手机
-                friendUserId = "iYdaECpcRjrnDrZLyDUk77ByNj5Mvvg9evz7L5rr4ch";
-                friendUserAddress = "2aKDxyxQX2g5mLeZhiNY8Krhn8WN9HMGTmy7tBGGQUWoFdwDzxJR";
+            if(!application.getCarrier().getUserId().equals("DATYhHwvqN64ZQHeDkegT8cPn9Qw8wxjLC8LqXhMXfWG")){  //小手机
+                friendUserId = "DATYhHwvqN64ZQHeDkegT8cPn9Qw8wxjLC8LqXhMXfWG";
+                friendUserAddress = "TjZ7kKMfxxPd7wTBBYra7uTUw4pTEFoQ67TXKCgSKDcFLSCH3WTQ";
 
             }
             List<FriendInfo> list = application.getCarrier().getFriends();
