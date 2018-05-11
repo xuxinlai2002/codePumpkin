@@ -82,19 +82,22 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
         //testGson();
         initCarrierNet();
 
-        try {
-            application.setFriendID(friendUserId);
-            application.setFriendAddr(friendUserAddress);
-//            if(!application.getCarrier().getUserId().equals("DATYhHwvqN64ZQHeDkegT8cPn9Qw8wxjLC8LqXhMXfWG")){  //小手机
-//                friendUserId = "DATYhHwvqN64ZQHeDkegT8cPn9Qw8wxjLC8LqXhMXfWG";
-//                friendUserAddress = "TjZ7kKMfxxPd7wTBBYra7uTUw4pTEFoQ67TXKCgSKDcFLSCH3WTQ";
-//
-//            }
-            List<FriendInfo> list = application.getCarrier().getFriends();
-            Log.i(TAG,list.toString());
-        } catch (ElastosException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            application.setFriendID(friendUserId);
+//            application.setFriendAddr(friendUserAddress);
+////            if(!application.getCarrier().getUserId().equals("DATYhHwvqN64ZQHeDkegT8cPn9Qw8wxjLC8LqXhMXfWG")){  //小手机
+////                friendUserId = "DATYhHwvqN64ZQHeDkegT8cPn9Qw8wxjLC8LqXhMXfWG";
+////                friendUserAddress = "TjZ7kKMfxxPd7wTBBYra7uTUw4pTEFoQ67TXKCgSKDcFLSCH3WTQ";
+////
+////            }
+//            List<FriendInfo> list = application.getCarrier().getFriends();
+//            Log.i(TAG,list.toString());
+//        } catch (ElastosException e) {
+//            e.printStackTrace();
+//        }
+
+
+
 
 
 
@@ -119,8 +122,8 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
         Bitmap bitmap = null;
         try {
 
-            String strID ="";
-            String strAddr  ="";
+            //String strID ="";
+           // String strAddr  ="";
             //以下添加事件
             switch (v.getId()){
                 case R.id.btn_start:
@@ -128,16 +131,15 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
                     break;
                 case R.id.btn_my_info:
                     //get user info
-                    strAddr = application.getCarrier().getAddress();
-                    strID = application.getCarrier().getUserId();
+                    String strAddr = application.getCarrier().getAddress();
+                    //String strID  = application.getCarrier().getUserId();
 
-                    String contentEtString = strAddr + "," + strID;
-                    Log.i(TAG,"on click btn_my_info :" + strAddr.length() + "," + strID.length());
+                    //String contentEtString = strAddr + "," + strID;
 
                     bitmap = null;
                     try {
                         Bitmap logo = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
-                        bitmap = CodeCreator.createQRCode(contentEtString, 400, 400, logo);
+                        bitmap = CodeCreator.createQRCode(strAddr, 400, 400, logo);
 
                     } catch (WriterException e) {
                         e.printStackTrace();
@@ -208,28 +210,38 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
         if (requestCode == REQUEST_CODE_SCAN && resultCode == RESULT_OK) {
             if (data != null) {
 
-                String[] content = data.getStringExtra(Constant.CODED_CONTENT).split(",");
-                Log.i(TAG,"onActivityResult 扫描结果为 :" + content);
+                List<FriendInfo> list = null;
+                try {
+                    list = application.getCarrier().getFriends();
+                    for (int i = 0;i<list.size(); i++){
+                        application.getCarrier().removeFriend(list.get(i).getUserId());
+                    }
+
+                } catch (ElastosException e) {
+                    e.printStackTrace();
+                }
+
+                friendUserAddress = data.getStringExtra(Constant.CODED_CONTENT);
+                Log.i(TAG,"onActivityResult 扫描结果为 :" + friendUserAddress);
 
                 //purse content 中间 52位为逗号
                 //friendUserAddress = content.substring(0,51);
                 //friendUserId = content.substring(53);
-                friendUserAddress = content[0];
-                friendUserId = content[1];
+                //friendUserAddress = content[0];
+               // friendUserId = content[1];
 
                 Log.i(TAG,"friendAddress :" + friendUserAddress);
-                Log.i(TAG,"friendUserId :" + friendUserId);
 
-                application.setFriendID(friendUserId);
+                //application.setFriendID(friendUserId);
                 application.setFriendAddr(friendUserAddress);
 
                 application.setMyGameUserType(1);
 
                 try {
                     String UserID = application.getCarrier().getUserId();
-                    if(application.getCarrier().isFriend(friendUserId)){
-                        application.getCarrier().removeFriend(friendUserId);
-                    }
+//                    if(application.getCarrier().isFriend(friendUserId)){
+//                        application.getCarrier().removeFriend(friendUserId);
+//                    }
                     if(!Carrier.isValidAddress(friendUserAddress)){
                         ToastUtil.showLong(LauncherActivity.this,"不正确的地址,请扫描正确的二维码");
                     }else{
@@ -322,9 +334,11 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
         public void onFriendConnection(Carrier carrier, String friendId, ConnectionStatus status) {
 
             Log.i(CALLBACK,"friendid:" + friendId + "connection changed to: " + status);
-            from = friendId;
+            Log.i(TAG,"friendUserId :" + friendUserId);
+
             friendStatus = status;
             if (friendStatus == ConnectionStatus.Connected){
+                LauncherActivity.this.friendUserId = friendId;
                 application.setFriendID(friendId);
                 runOnUiThread(new Runnable() {
                     @Override

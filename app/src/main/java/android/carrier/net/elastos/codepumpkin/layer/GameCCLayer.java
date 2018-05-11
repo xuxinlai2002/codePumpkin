@@ -43,7 +43,7 @@ public class GameCCLayer extends CCLayer {
     private CCSprite spriteBg;
     private CCSprite spriteGrad;
     private CCSprite spriteStep;
-    private CCSprite spriteTurn;
+    // private CCSprite spriteTurn;
     private CCSprite spriteLeft;
     private CCSprite spriteRight;
     private CCSprite spriteReset;
@@ -79,7 +79,6 @@ public class GameCCLayer extends CCLayer {
      * 是否为重播状态
      */
     private boolean isRePlay = false;
-
 
 
     public GameCCLayer(Context context) {
@@ -125,10 +124,10 @@ public class GameCCLayer extends CCLayer {
         actionIndex = 0;
         loopWait = false;
         isRePlay = true;
-        ((MainActivity)context).runOnUiThread(new Thread(){
+        ((MainActivity) context).runOnUiThread(new Thread() {
             @Override
             public void run() {
-                ((MainActivity)context) .dialog.showDialog(actionList);
+                ((MainActivity) context).dialog.showDialog(actionList);
             }
         });
         this.initView();
@@ -159,32 +158,32 @@ public class GameCCLayer extends CCLayer {
             }
             return false;
         }
-        //旋转按钮
-        if (SpriteUtil.isContainsPointByView(spriteTurn, p)) {
-            //spriteLeft.setVisible(true);
-            if (spriteLeft.getOpacity() == 0) {
-                spriteLeft.runAction(actionTurnLeft);
-                spriteRight.runAction(actionTurnRight);
-            } else {
-                spriteLeft.runAction(actionTurnLeft.reverse());
-                spriteRight.runAction(actionTurnRight.reverse());
-            }
-            return false;
-        }
+
+//        if (SpriteUtil.isContainsPointByView(spriteRight, p)) {
+//            //spriteLeft.setVisible(true);
+//            if (spriteLeft.getOpacity() == 0) {
+//                spriteLeft.runAction(actionTurnLeft);
+//                spriteRight.runAction(actionTurnRight);
+//            } else {
+//                spriteLeft.runAction(actionTurnLeft.reverse());
+//                spriteRight.runAction(actionTurnRight.reverse());
+//            }
+//            return false;
+//        }
 
 
         //左转
         if (SpriteUtil.isContainsPointByView(spriteLeft, p)) {
-            spriteLeft.runAction(actionTurnLeft.reverse());
-            spriteRight.runAction(actionTurnRight.reverse());
+            //spriteLeft.runAction(actionTurnLeft.reverse());
+            //spriteRight.runAction(actionTurnRight.reverse());
             actionHandler(new Action(currentUser, GameCommon.ACTION_ROTA, -90));
             return false;
         }
 
         //右转
         if (SpriteUtil.isContainsPointByView(spriteRight, p)) {
-            spriteLeft.runAction(actionTurnLeft.reverse());
-            spriteRight.runAction(actionTurnRight.reverse());
+            //spriteLeft.runAction(actionTurnLeft.reverse());
+            //spriteRight.runAction(actionTurnRight.reverse());
             //actionHandler(new Action(currentUser, GameCommon.ACTION_ROTA, 90));
             actionHandler(new Action(currentUser, GameCommon.ACTION_ROTA, 90));
             return false;
@@ -223,27 +222,27 @@ public class GameCCLayer extends CCLayer {
         return super.ccTouchesBegan(event);
     }
 
-    private void setDisplayStep(boolean v){
-        for (int i = 0;i<stepPromptList.size();i++){
-            stepPromptList.get(i).setOpacity(v?255:0);
+    private void setDisplayStep(boolean v) {
+        for (int i = 0; i < stepPromptList.size(); i++) {
+            stepPromptList.get(i).setOpacity(v ? 255 : 0);
         }
     }
 
     /***
      * 控件处理
      */
-    public void ElementHandler(List<GameElement> pumpkins,List<GameElement> bush){
+    public void ElementHandler(List<GameElement> pumpkins, List<GameElement> bush) {
         // 添加南瓜和障碍物
         for (int i = 0; i < pumpkins.size(); i++) {
             CCSprite cc = SpriteUtil.createPumpkin();
-            cc.setPosition(pumpkins.get(i).getX(),pumpkins.get(i).getY());
+            cc.setPosition(pumpkins.get(i).getX(), pumpkins.get(i).getY());
             pumpkinList.add(cc);
             this.addChild(pumpkinList.get(i), 10);
         }
 
         for (int i = 0; i < bush.size(); i++) {
             CCSprite cc = SpriteUtil.createBush();
-            cc.setPosition(bush.get(i).getX(),bush.get(i).getY());
+            cc.setPosition(bush.get(i).getX(), bush.get(i).getY());
             bushList.add(cc);
             this.addChild(bushList.get(i), 10);
         }
@@ -281,26 +280,34 @@ public class GameCCLayer extends CCLayer {
                     break;
             }
 
-            if(isRePlay){
-                ((MainActivity)context).runOnUiThread(new Runnable() {
+            if (isRePlay) {
+                ((MainActivity) context).runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        ((MainActivity)context).adapter.setCurrentIndex(actionIndex);
+                        ((MainActivity) context).adapter.setCurrentIndex(actionIndex);
+                        ((MainActivity) context).dialog.lvAction.setSelection(actionIndex);
                         //((MainActivity)context).adapter.notifyDataSetChanged();
-                      //  ListView lvAction = ((MainActivity)context).dialog.lvAction;
-                      //  lvAction.performItemClick(lvAction.getChildAt(0),0,lvAction.getItemIdAtPosition(0));
+                        //  ListView lvAction = ((MainActivity)context).dialog.lvAction;
+                        //  lvAction.performItemClick(lvAction.getChildAt(0),0,lvAction.getItemIdAtPosition(0));
                     }
                 });
 
             }
 
-            if (!isRePlay && !action.getUserId().equals(carrierExecutorInst.getFriendID())) {
+            if (!checkNull(carrierExecutorInst.getFriendID()) &&
+                    !isRePlay &&
+                    !action.getUserId().equals(carrierExecutorInst.getFriendID())) {
                 carrierExecutorInst.sendMessage(action);
             }
 
         }
 
 
+    }
+
+
+    private boolean checkNull(String text) {
+        return text == null || "".equals(text);
     }
 
 
@@ -317,7 +324,7 @@ public class GameCCLayer extends CCLayer {
         return nRet;
     }
 
-    private int getMyUserIndex(){
+    private int getMyUserIndex() {
         return carrierExecutorInst.getMyGameUserType();
     }
 
@@ -344,21 +351,21 @@ public class GameCCLayer extends CCLayer {
         //遍历吃南瓜
         for (int j = 0; j < pumpkinList.size(); j++) {
 
-            if(pumpkinList.get(j).getOpacity() != 0){           //隐藏 被吃掉
+            if (pumpkinList.get(j).getOpacity() != 0) {           //隐藏 被吃掉
 
                 for (int i = 0; i < nUserSize; i++) {
                     if (SpriteUtil.isContainsRect(gameUserList.get(i).getSprite(), pumpkinList.get(j))) {
                         //播放音效
-                        ((MainActivity)context).playAudio();
+                        ((MainActivity) context).playAudio();
                         pumpkinList.get(j).setUserData(0);      //吃掉
                         pumpkinList.get(j).setOpacity(0);
                         gameUserList.get(i).setPumpkinCount(gameUserList.get(i).getPumpkinCount() + 1);
                         if (gameUserList.get(i).getPumpkinCount() > GameCommon.PUMPKIN_COUNT / 2) {
                             //if(carrierExecutorInst.getUserID().equals(gameUserList.get(i).getId())){
-                            if(i == getMyUserIndex()){
+                            if (i == getMyUserIndex()) {
                                 toast("游戏胜利");
 
-                            }else{
+                            } else {
                                 toast("对方取得了胜利");
 
                             }
@@ -393,7 +400,7 @@ public class GameCCLayer extends CCLayer {
      */
     public CCMoveBy createMoveAction(GameUser gameUser, double step) {
         CCMoveBy moveAction = null;
-        float duration = (Math.abs((float) step) / GameCommon.DEFAULT_SIZE) * (isRePlay?GameCommon.DEFAULT_TIME*3:GameCommon.DEFAULT_TIME);
+        float duration = (Math.abs((float) step) / GameCommon.DEFAULT_SIZE) * (isRePlay ? GameCommon.DEFAULT_TIME * 3 : GameCommon.DEFAULT_TIME);
         switch (gameUser.getDirection()) {        //方向  上、右、下、左
             case GameCommon.DIRECTION_UP:
             default:
@@ -436,7 +443,7 @@ public class GameCCLayer extends CCLayer {
             }
         }
 
-        return CCRotateBy.action((isRePlay?GameCommon.DEFAULT_TIME*3:GameCommon.DEFAULT_TIME), value);
+        return CCRotateBy.action((isRePlay ? GameCommon.DEFAULT_TIME * 3 : GameCommon.DEFAULT_TIME), value);
 
 //        if (type == 1) {
 //            // if (acc.direction > 1) {
@@ -467,7 +474,6 @@ public class GameCCLayer extends CCLayer {
     private void initBg() {
 
 
-
         spriteBg = CCSprite.sprite("grass-big.jpg");
         spriteBg.setAnchorPoint(CGPoint.getZero());
         spriteBg.setPosition(CGPoint.getZero());
@@ -479,19 +485,16 @@ public class GameCCLayer extends CCLayer {
         spriteGrad.setScale(0.4);
 
 
-
-
         this.addChild(spriteBg, 0, 0);
 
         this.addChild(spriteGrad, 20);
-
 
 
         spriteToast = SpriteUtil.createToast();
         this.addChild(spriteToast, 100);
     }
 
-    private void playUserAnimation(){
+    private void playUserAnimation() {
         CCSpriteFrameCache c1 = CCSpriteFrameCache.initSpriteFrameCache();
         CCSpriteFrameCache c2 = CCSpriteFrameCache.initSpriteFrameCache();
         c1.addSpriteFrames("grad-1.plist");
@@ -499,12 +502,12 @@ public class GameCCLayer extends CCLayer {
         //c.addSpriteFrames("")
         ArrayList<CCSpriteFrame> frames1 = new ArrayList<>();
         ArrayList<CCSpriteFrame> frames2 = new ArrayList<>();
-        for(int i=1;i<=8;i++){
-            frames1.add(c1.getSpriteFrame((i)+".png"));
-            frames2.add(c2.getSpriteFrame((i)+".png"));
+        for (int i = 1; i <= 8; i++) {
+            frames1.add(c1.getSpriteFrame((i) + ".png"));
+            frames2.add(c2.getSpriteFrame((i) + ".png"));
         }
-        gameUserList.get(0).getSprite().runAction(CCRepeatForever.actionWithAction(CCAnimate.action(CCAnimation.animationWithFrames(frames1,GameCommon.DEFAULT_TIME*3))));
-        gameUserList.get(1).getSprite().runAction(CCRepeatForever.actionWithAction(CCAnimate.action(CCAnimation.animationWithFrames(frames2,GameCommon.DEFAULT_TIME*3))));
+        gameUserList.get(0).getSprite().runAction(CCRepeatForever.actionWithAction(CCAnimate.action(CCAnimation.animationWithFrames(frames1, GameCommon.DEFAULT_TIME * 3))));
+        gameUserList.get(1).getSprite().runAction(CCRepeatForever.actionWithAction(CCAnimate.action(CCAnimation.animationWithFrames(frames2, GameCommon.DEFAULT_TIME * 3))));
 
 //        CCSpriteFrameCache.initSpriteFrameCache().getSpriteFrame()
 //        CCAnimation animation = CCAnimation.animation("");
@@ -527,27 +530,29 @@ public class GameCCLayer extends CCLayer {
      */
     private void initCtrlView() {
         spriteStep = new CCSprite("icon-step.png");
-        spriteTurn = new CCSprite("icon-turn.png");
+        //spriteTurn = new CCSprite("icon-turn.png");
         spriteLeft = new CCSprite("icon-left.png");
         spriteRight = new CCSprite("icon-right.png");
         spriteReset = new CCSprite("icon-reset.png");
 
-        spriteTurn.setPosition(SpriteUtil.cratePoint(this.getContentSize().getWidth() - GameCommon.DEFAULT_SIZE, spriteTurn.getContentSize().getHeight() / 2 + 10));
+        // spriteTurn.setPosition(SpriteUtil.cratePoint(this.getContentSize().getWidth() - GameCommon.DEFAULT_SIZE, spriteTurn.getContentSize().getHeight() / 2 + 10));
+        spriteLeft.setPosition(SpriteUtil.cratePoint(this.getContentSize().getWidth() - GameCommon.DEFAULT_SIZE * 3 - 20, spriteRight.getContentSize().getHeight() / 2 + 10));
+        spriteRight.setPosition(SpriteUtil.cratePoint(this.getContentSize().getWidth() - GameCommon.DEFAULT_SIZE - 20, spriteRight.getContentSize().getHeight() / 2 + 10));
         spriteStep.setPosition(SpriteUtil.cratePoint(this.getContentSize().getWidth() - GameCommon.DEFAULT_SIZE * 2 - 20, spriteStep.getContentSize().getHeight() / 2 + 10));
         spriteReset.setPosition(SpriteUtil.cratePoint(GameCommon.DEFAULT_SIZE * 2, spriteReset.getContentSize().getHeight() / 2 + 10));
 
 
         //创建动画和透明度
-        spriteLeft.setPosition(spriteTurn.getPosition());
-        spriteLeft.setOpacity(0);
-        spriteRight.setPosition(spriteTurn.getPosition());
-        spriteRight.setOpacity(0);
+        // spriteLeft.setPosition(spriteTurn.getPosition());
+        // spriteLeft.setOpacity(0);
+        // spriteRight.setPosition(spriteTurn.getPosition());
+        // spriteRight.setOpacity(0);
         actionTurnLeft = SpriteUtil.createShowIconAction(SpriteUtil.cratePoint(0, GameCommon.DEFAULT_SIZE));
         actionTurnRight = SpriteUtil.createShowIconAction(SpriteUtil.cratePoint(0, GameCommon.DEFAULT_SIZE * 2));
 
 
         this.addChild(spriteStep, 10);
-        this.addChild(spriteTurn, 10);
+        //this.addChild(spriteTurn, 10);
         this.addChild(spriteLeft, 10);
         this.addChild(spriteRight, 10);
         this.addChild(spriteReset, 10);
@@ -563,7 +568,7 @@ public class GameCCLayer extends CCLayer {
         //spriteStepBox.setOpacity(0);
         actionStep1 = SpriteUtil.createShowIconAction(SpriteUtil.cratePoint(0, 50));
         actionStep2 = SpriteUtil.createShowIconAction(SpriteUtil.cratePoint(0, 50 + GameCommon.DEFAULT_FONT_SIZE));
-        actionStepBox = SpriteUtil.createShowIconAction(SpriteUtil.cratePoint(0, GameCommon.DEFAULT_FONT_SIZE*2+10 ));
+        actionStepBox = SpriteUtil.createShowIconAction(SpriteUtil.cratePoint(0, GameCommon.DEFAULT_FONT_SIZE * 2 + 10));
         this.addChild(this.spriteStep1, 20);
         this.addChild(this.spriteStep2, 20);
 
@@ -656,11 +661,11 @@ public class GameCCLayer extends CCLayer {
             GameUser user2 = new GameUser();
             user2.setDirection(1);
 
-            if(carrierExecutorInst.getMyGameUserType() == 0){
+            if (carrierExecutorInst.getMyGameUserType() == 0) {
                 user1.setId(carrierExecutorInst.getUserID());
                 user2.setId(carrierExecutorInst.getFriendID());
 
-            }else{
+            } else {
                 user1.setId(carrierExecutorInst.getFriendID());
                 user2.setId(carrierExecutorInst.getUserID());
             }
@@ -704,23 +709,23 @@ public class GameCCLayer extends CCLayer {
 
     }
 
-    private void initElement(){
+    private void initElement() {
 
-        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(480,310)));
-        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(320,270)));
-        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(530,270)));
-        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(210,250)));
-        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(160,360)));
+        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(480, 310)));
+        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(320, 270)));
+        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(530, 270)));
+        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(210, 250)));
+        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(160, 360)));
 
-        bushList.add(SpriteUtil.createBushByPoint(CGPoint.make(630,250)));
-        bushList.add(SpriteUtil.createBushByPoint(CGPoint.make(192,170)));
-        bushList.add(SpriteUtil.createBushByPoint(CGPoint.make(100,290)));
+        bushList.add(SpriteUtil.createBushByPoint(CGPoint.make(630, 250)));
+        bushList.add(SpriteUtil.createBushByPoint(CGPoint.make(192, 170)));
+        bushList.add(SpriteUtil.createBushByPoint(CGPoint.make(100, 290)));
 
-        for (int i = 0; i <pumpkinList.size(); i++) {
+        for (int i = 0; i < pumpkinList.size(); i++) {
             this.addChild(pumpkinList.get(i), 10);
         }
         for (int i = 0; i < bushList.size(); i++) {
-           this.addChild(bushList.get(i), 10);
+            this.addChild(bushList.get(i), 10);
         }
 //        // 添加南瓜和障碍物
 //        for (int i = 0; i < GameCommon.PUMPKIN_COUNT; i++) {
@@ -756,14 +761,23 @@ public class GameCCLayer extends CCLayer {
                 if (user.getDirection() % 2 != 0) {  //x轴
                     if (p.x > b.origin.x && p.x < b.origin.x + b.size.width) {   // x轴重合
 
-                        t = (int) (b.origin.y - p.y + 10);
+                        if(user.getDirection() == 1){
+                            t = (int) ( b.origin.y -  p.y  + 10);
+                        }else{
+                            t = (int) ( p.y - b.origin.y  + 10);
+
+                        }
                         stepPromptList.add(SpriteUtil.createStepText((t > 0 ? "+" + t : "" + t), createStepPromptPosition(), t));
 
                         this.addChild(stepPromptList.get(stepPromptList.size() - 1), 20);
                     }
                 } else {                                                      //y轴
                     if (p.y > b.origin.y && p.y < b.origin.y + b.size.height) {   // y轴重合
-                        t = (int) (b.origin.x - p.x + 10);
+                        if(user.getDirection() == 2){
+                            t = (int) (b.origin.x - p.x + 10);
+                        }else{
+                            t = (int) ( p.x - b.origin.x + 10);
+                        }
                         stepPromptList.add(SpriteUtil.createStepText((t > 0 ? "+" + t : "" + t), createStepPromptPosition(), t));
                         this.addChild(stepPromptList.get(stepPromptList.size() - 1), 20);
                     }
@@ -784,7 +798,7 @@ public class GameCCLayer extends CCLayer {
 
         if (stepPromptList.size() > 0) {
             CGPoint item = stepPromptList.get(stepPromptList.size() - 1).getPosition();
-            return  SpriteUtil.cratePoint(spriteStep.getPosition().x, item.y+ GameCommon.DEFAULT_FONT_HEIGHT);
+            return SpriteUtil.cratePoint(spriteStep.getPosition().x, item.y + GameCommon.DEFAULT_FONT_HEIGHT);
         } else {
             return SpriteUtil.cratePoint(spriteStep.getPosition().x, 140);
         }
@@ -827,8 +841,6 @@ public class GameCCLayer extends CCLayer {
         }
         return view;
     }
-
-
 
 
 }
