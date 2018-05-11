@@ -13,6 +13,16 @@ public class SysApp extends Application {
     //我的用户类型  0 主玩家（左侧）  1 次玩家（右侧）
     int myGameUserType = 0;
 
+    boolean isFirst = true;
+
+    public boolean isFirst() {
+        return isFirst;
+    }
+
+    public void setFirst(boolean first) {
+        isFirst = first;
+    }
+
     public String getFriendID() {
         return friendID;
     }

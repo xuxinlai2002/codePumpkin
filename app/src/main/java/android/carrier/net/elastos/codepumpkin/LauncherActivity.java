@@ -1,9 +1,11 @@
 package android.carrier.net.elastos.codepumpkin;
 
 
+import android.app.ProgressDialog;
 import android.carrier.net.elastos.codepumpkin.Bean.SysApp;
 import android.carrier.net.elastos.codepumpkin.common.GameCommon;
 import android.carrier.net.elastos.codepumpkin.ui.QcCodeDialog;
+import android.carrier.net.elastos.codepumpkin.ui.WaitDialog;
 import android.carrier.net.elastos.codepumpkin.util.ToastUtil;
 import android.carrier.net.elastos.common.NetOptions;
 import android.carrier.net.elastos.common.Synchronizer;
@@ -58,7 +60,7 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
   //  private String friendUserAddress = " KcPRVCGkWdt49w9bpJFRyXySnCxNvDAibyn23rau42fVqNehc4c4";
 
     private QcCodeDialog dialog;
-
+    private WaitDialog waitDialog;
     private ImageButton btnStart;
     private ImageButton btnMyInfo;
     private ImageButton btnAddFriend;
@@ -72,6 +74,7 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
     //
     private int REQUEST_CODE_SCAN = 111;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,8 +82,21 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
         setContentView(R.layout.launcher);
 
         initView();
-        //testGson();
-        initCarrierNet();
+
+        application = (SysApp)this.getApplicationContext();
+        if (application.isFirst()){
+            waitDialog.show("玩命加载中...");
+            application.setFirst(false);
+        }
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                initCarrierNet();
+            }
+        }).start();
+
+//        //testGson();
 
 //        try {
 //            application.setFriendID(friendUserId);
@@ -114,6 +130,7 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
         this.btnMyInfo.setOnClickListener(this);
         this.btnAddFriend.setOnClickListener(this);
         dialog = new QcCodeDialog(this);
+        waitDialog = new WaitDialog(this);
     }
 
     @Override
@@ -282,7 +299,6 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
         NetOptions options = new NetOptions(getAppPath());
         CarrierHandler handler = new CarrierHandler();
 
-        application = (SysApp)this.getApplicationContext();
 
         //1.初始化实例，获得相关信息
         try {
@@ -329,6 +345,7 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
         public void onReady(Carrier carrier) {
             Log.i(TAG,"onReady"+System.currentTimeMillis());
             synch.wakeup();
+            waitDialog.dismiss();
         }
 
         public void onFriendConnection(Carrier carrier, String friendId, ConnectionStatus status) {
