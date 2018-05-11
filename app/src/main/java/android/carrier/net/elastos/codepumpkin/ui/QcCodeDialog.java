@@ -5,56 +5,52 @@ import android.carrier.net.elastos.codepumpkin.Bean.Action;
 import android.carrier.net.elastos.codepumpkin.R;
 import android.carrier.net.elastos.codepumpkin.ui.adapter.DialogAdapter;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.media.Image;
 import android.support.annotation.NonNull;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ListView;
 
 import java.util.List;
 
 /**
- * 用dialog显示步数提示
+ * 用dialog显示二维码
  * */
-public class StepDialog extends Dialog {
+public class QcCodeDialog extends Dialog {
 
-    public ListView lvAction;
-    private DialogAdapter adapter;
     private Context context;
+    private ImageView ivCode;
 
 
 
 
-
-    public StepDialog(@NonNull Context context, DialogAdapter adapter) {
+    public QcCodeDialog(@NonNull Context context) {
         super(context);
 //        WindowManager.LayoutParams lp= this.getWindow().getAttributes();
 //        lp.alpha=0.5f;
 //        this.getWindow().setAttributes(lp);
         this.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         this.context = context;
-        this.adapter = adapter;
         initView();
     }
 
     public void initView() {
-        View view = View.inflate(context,R.layout.dialog_content,null);
+        View view = View.inflate(context,R.layout.dialog_img,null);
         setContentView(view);
-        lvAction = (ListView) view.findViewById(R.id.dialog_listview);
-        view.findViewById(R.id.dialog_close).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                StepDialog.this.cancel();
-            }
-        });
-        lvAction.setAdapter(adapter);
-        this.setCanceledOnTouchOutside(false);
+//        view.findViewById(R.id.dialog_qcode).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                QcCodeDialog.this.cancel();
+//            }
+//        });
+        this.ivCode = (ImageView)view.findViewById(R.id.dialog_qcode);
+       // this.setCanceledOnTouchOutside(false);
     }
 
 
-    public void showDialog(List<Action> list){
-        this.adapter.setData(list);
-        this.adapter.notifyDataSetChanged();
+    public void showDialog(Bitmap bm){
+        ivCode.setImageBitmap(bm);
         this.show();
     }
 

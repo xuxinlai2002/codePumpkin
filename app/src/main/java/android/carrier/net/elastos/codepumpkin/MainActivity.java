@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     private Gson gson;
 
     public StepDialog dialog;
+    public DialogAdapter adapter;
 
     private MediaPlayer mediaPlayer;
 
@@ -89,7 +90,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initDialog() {
-        dialog = new StepDialog(this, new DialogAdapter(this, null));
+        adapter =  new DialogAdapter(this, null);
+        dialog = new StepDialog(this,adapter);
 
     }
 

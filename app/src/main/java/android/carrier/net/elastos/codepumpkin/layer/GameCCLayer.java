@@ -11,6 +11,7 @@ import android.content.Context;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.animation.Animation;
+import android.widget.ListView;
 
 import org.cocos2d.actions.base.CCRepeatForever;
 import org.cocos2d.actions.instant.CCCallFunc;
@@ -124,15 +125,16 @@ public class GameCCLayer extends CCLayer {
         actionIndex = 0;
         loopWait = false;
         isRePlay = true;
-        this.initView();
-        actionLoop();
-
         ((MainActivity)context).runOnUiThread(new Thread(){
             @Override
             public void run() {
                 ((MainActivity)context) .dialog.showDialog(actionList);
             }
         });
+        this.initView();
+        actionLoop();
+
+
     }
 
     /**
@@ -279,6 +281,18 @@ public class GameCCLayer extends CCLayer {
                     break;
             }
 
+            if(isRePlay){
+                ((MainActivity)context).runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ((MainActivity)context).adapter.setCurrentIndex(actionIndex);
+                        //((MainActivity)context).adapter.notifyDataSetChanged();
+                      //  ListView lvAction = ((MainActivity)context).dialog.lvAction;
+                      //  lvAction.performItemClick(lvAction.getChildAt(0),0,lvAction.getItemIdAtPosition(0));
+                    }
+                });
+
+            }
 
             if (!isRePlay && !action.getUserId().equals(carrierExecutorInst.getFriendID())) {
                 carrierExecutorInst.sendMessage(action);
@@ -301,6 +315,10 @@ public class GameCCLayer extends CCLayer {
 //        }
 
         return nRet;
+    }
+
+    private int getMyUserIndex(){
+        return carrierExecutorInst.getMyGameUserType();
     }
 
     /**
@@ -334,7 +352,8 @@ public class GameCCLayer extends CCLayer {
                     pumpkinList.get(j).setOpacity(0);
                     gameUserList.get(i).setPumpkinCount(gameUserList.get(i).getPumpkinCount() + 1);
                     if (gameUserList.get(i).getPumpkinCount() > GameCommon.PUMPKIN_COUNT / 2) {
-                        if(carrierExecutorInst.getUserID().equals(gameUserList.get(i).getId())){
+                        //if(carrierExecutorInst.getUserID().equals(gameUserList.get(i).getId())){
+                        if(i == getMyUserIndex()){
                             toast("游戏胜利");
 
                         }else{
@@ -370,7 +389,7 @@ public class GameCCLayer extends CCLayer {
      */
     public CCMoveBy createMoveAction(GameUser gameUser, double step) {
         CCMoveBy moveAction = null;
-        float duration = (Math.abs((float) step) / GameCommon.DEFAULT_SIZE) * GameCommon.DEFAULT_TIME;
+        float duration = (Math.abs((float) step) / GameCommon.DEFAULT_SIZE) * (isRePlay?GameCommon.DEFAULT_TIME*3:GameCommon.DEFAULT_TIME);
         switch (gameUser.getDirection()) {        //方向  上、右、下、左
             case GameCommon.DIRECTION_UP:
             default:
@@ -413,7 +432,7 @@ public class GameCCLayer extends CCLayer {
             }
         }
 
-        return CCRotateBy.action(GameCommon.DEFAULT_TIME, value);
+        return CCRotateBy.action((isRePlay?GameCommon.DEFAULT_TIME*3:GameCommon.DEFAULT_TIME), value);
 
 //        if (type == 1) {
 //            // if (acc.direction > 1) {
@@ -625,25 +644,53 @@ public class GameCCLayer extends CCLayer {
                 pumpkinList.get(i).setOpacity(255);
             }
         } else {
-            //添加自身玩家
-            GameUser myUser = new GameUser();
 
-          //  myUser.setId(carrierExecutorInst.getUserID());
-            myUser.setId("DATYhHwvqN64ZQHeDkegT8cPn9Qw8wxjLC8LqXhMXfWG");
-            myUser.setDirection(1);
-            myUser.setSprite(SpriteUtil.createGameUser(0));
-            myUser.setStartPosition(myUser.getSprite().getPosition());
-            gameUserList.add(myUser);
-            this.addChild(myUser.getSprite(), 5);
-            // 添加好友玩家
-            GameUser friendUser = new GameUser();
-           // friendUser.setId(carrierExecutorInst.getFriendID());
-            friendUser.setId("9U6E5ZkvtW8pVpo8iSDDyoZ4BccFTRKwRUVbLqYrXY6T");
-            friendUser.setDirection(1);
-            friendUser.setSprite(SpriteUtil.createGameUser(1));
-            friendUser.setStartPosition(friendUser.getSprite().getPosition());
-            gameUserList.add(friendUser);
-            this.addChild(friendUser.getSprite(), 5);
+            //添加玩家1
+            GameUser user1 = new GameUser();
+            user1.setDirection(1);
+            // 添加玩家2
+            GameUser user2 = new GameUser();
+            user2.setDirection(1);
+
+            if(carrierExecutorInst.getMyGameUserType() == 0){
+                user1.setId(carrierExecutorInst.getUserID());
+                user2.setId(carrierExecutorInst.getFriendID());
+
+            }else{
+                user1.setId(carrierExecutorInst.getFriendID());
+                user2.setId(carrierExecutorInst.getUserID());
+            }
+
+            user1.setSprite(SpriteUtil.createGameUser(0));
+            user2.setSprite(SpriteUtil.createGameUser(1));
+            user1.setStartPosition(user1.getSprite().getPosition());
+            user2.setStartPosition(user2.getSprite().getPosition());
+
+            gameUserList.add(user1);
+            gameUserList.add(user2);
+
+            this.addChild(user1.getSprite(), 5);
+            this.addChild(user2.getSprite(), 5);
+
+//            //添加自身玩家
+//            GameUser myUser = new GameUser();
+//
+//          //  myUser.setId(carrierExecutorInst.getUserID());
+//            myUser.setId("DATYhHwvqN64ZQHeDkegT8cPn9Qw8wxjLC8LqXhMXfWG");
+//            myUser.setDirection(1);
+//            myUser.setSprite(SpriteUtil.createGameUser(0));
+//            myUser.setStartPosition(myUser.getSprite().getPosition());
+//            gameUserList.add(myUser);
+//            this.addChild(myUser.getSprite(), 5);
+//            // 添加好友玩家
+//            GameUser friendUser = new GameUser();
+//           // friendUser.setId(carrierExecutorInst.getFriendID());
+//            friendUser.setId("9U6E5ZkvtW8pVpo8iSDDyoZ4BccFTRKwRUVbLqYrXY6T");
+//            friendUser.setDirection(1);
+//            friendUser.setSprite(SpriteUtil.createGameUser(1));
+//            friendUser.setStartPosition(friendUser.getSprite().getPosition());
+//            gameUserList.add(friendUser);
+//            this.addChild(friendUser.getSprite(), 5);
 
             initElement();
         }
@@ -661,7 +708,7 @@ public class GameCCLayer extends CCLayer {
         pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(210,250)));
         pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(160,360)));
 
-        bushList.add(SpriteUtil.createBushByPoint(CGPoint.make(590,220)));
+        bushList.add(SpriteUtil.createBushByPoint(CGPoint.make(630,250)));
         bushList.add(SpriteUtil.createBushByPoint(CGPoint.make(192,170)));
         bushList.add(SpriteUtil.createBushByPoint(CGPoint.make(100,290)));
 
@@ -689,11 +736,11 @@ public class GameCCLayer extends CCLayer {
      */
     private void createStepPrompt() {
         // spriteStepBox.removeAllChildren(true);
-//        for (int i = 0; i < stepPromptList.size(); i++) {
-//            this.removeChild(stepPromptList.get(i), true);
-//        }
+        for (int i = 0; i < stepPromptList.size(); i++) {
+            this.removeChild(stepPromptList.get(i), true);
+        }
         stepPromptList.clear();
-        GameUser user = gameUserList.get(getUserIndex(currentUser));
+        GameUser user = gameUserList.get(getMyUserIndex());
         CGPoint p = user.getSprite().getPosition();
 
         Log.i("stepuser", getUserIndex(currentUser) + "");

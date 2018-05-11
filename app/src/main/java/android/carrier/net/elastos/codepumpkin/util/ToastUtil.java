@@ -7,10 +7,11 @@ import android.widget.Toast;
 public class ToastUtil {
 
     public static void showLong(final Context context,final String text){
+
         ((Activity)context).runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(context,text,Toast.LENGTH_LONG);
+                Toast.makeText(context,text,Toast.LENGTH_LONG).show();
             }
         });
     }

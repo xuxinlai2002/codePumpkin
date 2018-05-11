@@ -17,6 +17,9 @@ public class DialogAdapter extends BaseAdapter {
     private List<Action> actionList;
     private Context context;
 
+    private int currentIndex = 0;
+
+
     class ViewHolder {
         TextView tvAction;
         TextView tvValue;
@@ -32,6 +35,11 @@ public class DialogAdapter extends BaseAdapter {
             actionList = new ArrayList<>();
         }
         this.actionList = actionList;
+    }
+
+    public void setCurrentIndex(int p){
+        this.currentIndex = p;
+        this.notifyDataSetChanged();
     }
 
     @Override
@@ -68,14 +76,20 @@ public class DialogAdapter extends BaseAdapter {
         if (action.getType() == 1) {
             holder.tvAction.setText("move");
             holder.tvValue.setText(action.getValue() + "");
-            holder.tvAction.setTextColor(Color.BLACK);
-            holder.tvValue.setTextColor(Color.BLACK);
+
 
         } else {
             holder.tvAction.setText("turn");
             holder.tvValue.setText(action.getValue() > 0 ? "right" : "left");
+
+        }
+
+        if(currentIndex == position){
             holder.tvAction.setTextColor(Color.RED);
             holder.tvValue.setTextColor(Color.RED);
+        }else{
+            holder.tvAction.setTextColor(Color.BLACK);
+            holder.tvValue.setTextColor(Color.BLACK);
         }
 
 

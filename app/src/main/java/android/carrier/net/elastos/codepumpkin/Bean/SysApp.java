@@ -10,6 +10,8 @@ public class SysApp extends Application {
     String friendID = "";
     String friendAddr = "";
     Carrier carrierInst = null;
+    //我的用户类型  0 主玩家（左侧）  1 次玩家（右侧）
+    int myGameUserType = 0;
 
     public String getFriendID() {
         return friendID;
@@ -36,5 +38,11 @@ public class SysApp extends Application {
         carrierInst = inst;
     }
 
+    public int getMyGameUserType() {
+        return myGameUserType;
+    }
 
+    public void setMyGameUserType(int myGameUserType) {
+        this.myGameUserType = myGameUserType;
+    }
 }

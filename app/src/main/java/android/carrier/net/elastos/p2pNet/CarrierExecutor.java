@@ -74,6 +74,7 @@ public class CarrierExecutor {
     }
 
 
+
     public void sendMessage(Action action){
 
         String strMessaage = this.actionToGString(action);
@@ -111,5 +112,12 @@ public class CarrierExecutor {
     }
 
 
+    public int getMyGameUserType() {
+        return application.getMyGameUserType();
+    }
+
+    public void setMyGameUserType(int myGameUserType) {
+        application.setMyGameUserType(myGameUserType);
+    }
 
 }
