@@ -113,7 +113,7 @@ public class SpriteUtil {
         CCSprite s = new CCSprite(picPath);
         s.setPosition(cratePoint(boxSize.getWidth() / 2 + nS, s.getContentSize().getHeight()));
         //s.setAnchorPoint(CGPoint.getZero());
-        s.setScale(1.2);
+        s.setScale(1);
         return s;
 
     }

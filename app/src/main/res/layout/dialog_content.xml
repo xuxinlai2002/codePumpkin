@@ -11,9 +11,10 @@
 
     <ImageView
         android:id="@+id/dialog_close"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:layout_gravity="left"
+        android:layout_marginBottom="10dp"
         app:srcCompat="@drawable/close" />
 
     <ListView

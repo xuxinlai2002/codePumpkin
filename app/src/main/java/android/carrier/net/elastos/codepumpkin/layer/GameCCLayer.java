@@ -344,28 +344,32 @@ public class GameCCLayer extends CCLayer {
         //遍历吃南瓜
         for (int j = 0; j < pumpkinList.size(); j++) {
 
-            for (int i = 0; i < nUserSize; i++) {
-                if (SpriteUtil.isContainsRect(gameUserList.get(i).getSprite(), pumpkinList.get(j))) {
-                    //播放音效
-                    ((MainActivity)context).playAudio();
-                    pumpkinList.get(j).setUserData(0);      //吃掉
-                    pumpkinList.get(j).setOpacity(0);
-                    gameUserList.get(i).setPumpkinCount(gameUserList.get(i).getPumpkinCount() + 1);
-                    if (gameUserList.get(i).getPumpkinCount() > GameCommon.PUMPKIN_COUNT / 2) {
-                        //if(carrierExecutorInst.getUserID().equals(gameUserList.get(i).getId())){
-                        if(i == getMyUserIndex()){
-                            toast("游戏胜利");
+            if(pumpkinList.get(j).getOpacity() != 0){           //隐藏 被吃掉
 
-                        }else{
-                            toast("对方取得了胜利");
+                for (int i = 0; i < nUserSize; i++) {
+                    if (SpriteUtil.isContainsRect(gameUserList.get(i).getSprite(), pumpkinList.get(j))) {
+                        //播放音效
+                        ((MainActivity)context).playAudio();
+                        pumpkinList.get(j).setUserData(0);      //吃掉
+                        pumpkinList.get(j).setOpacity(0);
+                        gameUserList.get(i).setPumpkinCount(gameUserList.get(i).getPumpkinCount() + 1);
+                        if (gameUserList.get(i).getPumpkinCount() > GameCommon.PUMPKIN_COUNT / 2) {
+                            //if(carrierExecutorInst.getUserID().equals(gameUserList.get(i).getId())){
+                            if(i == getMyUserIndex()){
+                                toast("游戏胜利");
 
+                            }else{
+                                toast("对方取得了胜利");
+
+                            }
+
+                        } else {
+                            toast("吃掉南瓜");
                         }
-
-                    } else {
-                        toast("吃掉南瓜");
                     }
                 }
             }
+
         }
         //遍历障碍物
         for (int j = 0; j < bushList.size(); j++) {

@@ -149,7 +149,6 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
                         dialog.showDialog(bitmap);
 
                         application.setMyGameUserType(0);
-                        ToastUtil.showLong(this,"我的二维码");
 
                     }
 
@@ -168,10 +167,11 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
                                      * 不传的话  默认都为默认不震动  其他都为true
                                      * */
 
-                                    ZxingConfig config = new ZxingConfig();
-                                    config.setPlayBeep(true);
-                                    config.setShake(true);
-                                    intent.putExtra(Constant.INTENT_ZXING_CONFIG, config);
+//                                    ZxingConfig config = new ZxingConfig();
+//                                    config.setPlayBeep(true);
+//                                    config.setShake(true);
+//                                    config.
+                              //      intent.putExtra(Constant.INTENT_ZXING_CONFIG, config);
 
                                     startActivityForResult(intent, REQUEST_CODE_SCAN);
                                 }
@@ -234,7 +234,6 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
                         ToastUtil.showLong(LauncherActivity.this,"不正确的地址,请扫描正确的二维码");
                     }else{
                         application.getCarrier().addFriend(friendUserAddress,UserID);
-                        ToastUtil.showLong(LauncherActivity.this,"添加好友成功");
                     }
 
                 } catch (ElastosException e) {
@@ -330,7 +329,6 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        ToastUtil.showLong(LauncherActivity.this,"添加成功");
                         if(dialog.isShowing()){
                             dialog.cancel();
                         }
@@ -359,7 +357,6 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
                 carrier.AcceptFriend(userId);
                 application.setFriendID(userId);
                 application.setFriendAddr(userAddr);
-                ToastUtil.showLong(LauncherActivity.this,"添加成功");
                 dialog.cancel();
 
             } catch (Exception e) {
