@@ -75,14 +75,14 @@ public class CarrierExecutor {
 
 
 
-    public void sendMessage(Action action){
+    public void sendMessage(String text){
 
-        String strMessaage = this.actionToGString(action);
+       // String strMessaage = this.actionToGString(action);
         try {
 
             Carrier carrierInst = application.getCarrier();
             Log.i(TAG,"start send message");
-            carrierInst.sendFriendMessage(application.getFriendID(), strMessaage);
+            carrierInst.sendFriendMessage(application.getFriendID(), text);
             Log.i(TAG,"end send message");
 
         }catch (ElastosException e) {

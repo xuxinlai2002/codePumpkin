@@ -147,7 +147,7 @@ public class SpriteUtil {
     }
 
     public static CGPoint randomPosition() {
-        return cratePoint(rand.nextInt((int) (boxSize.getWidth() - 200) + 100),
+        return cratePoint(rand.nextInt((int) (boxSize.getWidth() - GameCommon.DEFAULT_SIZE*2) )+  GameCommon.DEFAULT_SIZE,
                 rand.nextInt((int) (boxSize.getHeight() - 300)) + 200);
 //        CGPoint p;
 //        while (true) {
@@ -162,7 +162,9 @@ public class SpriteUtil {
 //        return p;
     }
 
-
+    public static boolean checkNull(String text) {
+        return text == null || "".equals(text);
+    }
 
 
     /**

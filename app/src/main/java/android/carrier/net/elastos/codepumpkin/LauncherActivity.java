@@ -1,11 +1,11 @@
 package android.carrier.net.elastos.codepumpkin;
 
 
-import android.app.ProgressDialog;
 import android.carrier.net.elastos.codepumpkin.Bean.SysApp;
 import android.carrier.net.elastos.codepumpkin.common.GameCommon;
 import android.carrier.net.elastos.codepumpkin.ui.QcCodeDialog;
 import android.carrier.net.elastos.codepumpkin.ui.WaitDialog;
+import android.carrier.net.elastos.codepumpkin.util.SpriteUtil;
 import android.carrier.net.elastos.codepumpkin.util.ToastUtil;
 import android.carrier.net.elastos.common.NetOptions;
 import android.carrier.net.elastos.common.Synchronizer;
@@ -18,19 +18,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
 import com.yzq.zxinglibrary.android.CaptureActivity;
-import com.yzq.zxinglibrary.bean.ZxingConfig;
 import com.yzq.zxinglibrary.common.Constant;
 
 import org.elastos.carrier.AbstractCarrierHandler;
@@ -39,6 +34,14 @@ import org.elastos.carrier.ConnectionStatus;
 import org.elastos.carrier.FriendInfo;
 import org.elastos.carrier.UserInfo;
 import org.elastos.carrier.exceptions.ElastosException;
+import org.elastos.carrier.session.AbstractStreamHandler;
+import org.elastos.carrier.session.Manager;
+import org.elastos.carrier.session.Session;
+import org.elastos.carrier.session.Stream;
+import org.elastos.carrier.session.StreamState;
+import org.elastos.carrier.session.StreamType;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.util.List;
@@ -48,16 +51,14 @@ import com.yanzhenjie.permission.AndPermission;
 import com.yanzhenjie.permission.Permission;
 
 import com.google.zxing.WriterException;
-import com.yanzhenjie.permission.Action;
-import com.yanzhenjie.permission.AndPermission;
 import com.yzq.zxinglibrary.encode.CodeCreator;
 
-public class LauncherActivity extends AppCompatActivity implements View.OnClickListener{
+public class LauncherActivity extends AppCompatActivity implements View.OnClickListener {
 
     private String friendUserId = "";
     private String friendUserAddress = " ";
-   // private String friendUserId = "9U6E5ZkvtW8pVpo8iSDDyoZ4BccFTRKwRUVbLqYrXY6T";
-  //  private String friendUserAddress = " KcPRVCGkWdt49w9bpJFRyXySnCxNvDAibyn23rau42fVqNehc4c4";
+    // private String friendUserId = "9U6E5ZkvtW8pVpo8iSDDyoZ4BccFTRKwRUVbLqYrXY6T";
+    //  private String friendUserAddress = " KcPRVCGkWdt49w9bpJFRyXySnCxNvDAibyn23rau42fVqNehc4c4";
 
     private QcCodeDialog dialog;
     private WaitDialog waitDialog;
@@ -66,10 +67,12 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
     private ImageButton btnAddFriend;
 
     //TODO
-    private String TAG="C LauncherActivity";
+    private static String TAG = "C LauncherActivity";
     private String AUTO = "auto-accepted";
     private SysApp application;
-  //  private ImageView contentIvWithLogo;
+//    private ActionStreamHandler streamHandler;
+
+    //  private ImageView contentIvWithLogo;
 
     //
     private int REQUEST_CODE_SCAN = 111;
@@ -83,8 +86,8 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
 
         initView();
 
-        application = (SysApp)this.getApplicationContext();
-        if (application.isFirst()){
+        application = (SysApp) this.getApplicationContext();
+        if (application.isFirst()) {
             waitDialog.show("玩命加载中...");
             application.setFirst(false);
         }
@@ -113,19 +116,13 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
 //        }
 
 
-
-
-
-
     }
 
 
-
-
-    private void initView(){
+    private void initView() {
         this.btnStart = (ImageButton) findViewById(R.id.btn_start);
-        this.btnMyInfo = (ImageButton)findViewById(R.id.btn_my_info);
-        this.btnAddFriend = (ImageButton)findViewById(R.id.btn_add_friend);
+        this.btnMyInfo = (ImageButton) findViewById(R.id.btn_my_info);
+        this.btnAddFriend = (ImageButton) findViewById(R.id.btn_add_friend);
         this.btnStart.setOnClickListener(this);
         this.btnMyInfo.setOnClickListener(this);
         this.btnAddFriend.setOnClickListener(this);
@@ -140,12 +137,18 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
         try {
 
             //String strID ="";
-           // String strAddr  ="";
+            // String strAddr  ="";
             //以下添加事件
-            switch (v.getId()){
+            switch (v.getId()) {
                 case R.id.btn_start:
-                    startActivity(new Intent(LauncherActivity.this,MainActivity.class));
-                    break;
+                    if (SpriteUtil.checkNull(application.getFriendID()) || application.getMyGameUserType() == 1) {
+                        startActivity(new Intent(LauncherActivity.this, MainActivity.class));
+                    }else{
+                        ToastUtil.showLong(LauncherActivity.this, "请等待对方进入游戏");
+
+                    }
+
+                break;
                 case R.id.btn_my_info:
                     //get user info
                     String strAddr = application.getCarrier().getAddress();
@@ -164,7 +167,7 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
                     if (bitmap != null) {
 
                         //TODO need to add in a dialog???
-                      //  contentIvWithLogo.setImageBitmap(bitmap);
+                        //  contentIvWithLogo.setImageBitmap(bitmap);
                         dialog.showDialog(bitmap);
 
                         application.setMyGameUserType(0);
@@ -190,7 +193,7 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
 //                                    config.setPlayBeep(true);
 //                                    config.setShake(true);
 //                                    config.
-                              //      intent.putExtra(Constant.INTENT_ZXING_CONFIG, config);
+                                    //      intent.putExtra(Constant.INTENT_ZXING_CONFIG, config);
 
                                     startActivityForResult(intent, REQUEST_CODE_SCAN);
                                 }
@@ -211,7 +214,7 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
                     break;
             }
 
-        }catch (ElastosException e) {
+        } catch (ElastosException e) {
             e.printStackTrace();
         }
 
@@ -222,7 +225,7 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
         super.onActivityResult(requestCode, resultCode, data);
 
 
-        Log.i(TAG,"on click onActivityResult start ");
+        Log.i(TAG, "on click onActivityResult start ");
         // 扫描二维码/条码回传
         if (requestCode == REQUEST_CODE_SCAN && resultCode == RESULT_OK) {
             if (data != null) {
@@ -230,7 +233,7 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
                 List<FriendInfo> list = null;
                 try {
                     list = application.getCarrier().getFriends();
-                    for (int i = 0;i<list.size(); i++){
+                    for (int i = 0; i < list.size(); i++) {
                         application.getCarrier().removeFriend(list.get(i).getUserId());
                     }
 
@@ -239,15 +242,15 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
                 }
 
                 friendUserAddress = data.getStringExtra(Constant.CODED_CONTENT);
-                Log.i(TAG,"onActivityResult 扫描结果为 :" + friendUserAddress);
+                Log.i(TAG, "onActivityResult 扫描结果为 :" + friendUserAddress);
 
                 //purse content 中间 52位为逗号
                 //friendUserAddress = content.substring(0,51);
                 //friendUserId = content.substring(53);
                 //friendUserAddress = content[0];
-               // friendUserId = content[1];
+                // friendUserId = content[1];
 
-                Log.i(TAG,"friendAddress :" + friendUserAddress);
+                Log.i(TAG, "friendAddress :" + friendUserAddress);
 
                 //application.setFriendID(friendUserId);
                 application.setFriendAddr(friendUserAddress);
@@ -259,10 +262,10 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
 //                    if(application.getCarrier().isFriend(friendUserId)){
 //                        application.getCarrier().removeFriend(friendUserId);
 //                    }
-                    if(!Carrier.isValidAddress(friendUserAddress)){
-                        ToastUtil.showLong(LauncherActivity.this,"不正确的地址,请扫描正确的二维码");
-                    }else{
-                        application.getCarrier().addFriend(friendUserAddress,UserID);
+                    if (!Carrier.isValidAddress(friendUserAddress)) {
+                        ToastUtil.showLong(LauncherActivity.this, "不正确的地址,请扫描正确的二维码");
+                    } else {
+                        application.getCarrier().addFriend(friendUserAddress, UserID);
                     }
 
                 } catch (ElastosException e) {
@@ -282,7 +285,6 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
     }
 
 
-
 //    private void testGson(){
 
 //        Action action = new Action("1",1,1);
@@ -294,7 +296,7 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
 //        Log.i("gson",action1.toString());
 //    }
 
-    private void initCarrierNet(){
+    private void initCarrierNet() {
 
         NetOptions options = new NetOptions(getAppPath());
         CarrierHandler handler = new CarrierHandler();
@@ -306,18 +308,19 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
             Carrier carrierInst = Carrier.getInstance(options, handler);
             application.setCarrier(carrierInst);
 
+
             //1.2获得Carrier的地址
             String carrierAddr = carrierInst.getAddress();
-            Log.i(TAG,"address: " + carrierAddr);
+            Log.i(TAG, "address: " + carrierAddr);
 
             //1.3获得Carrier的用户ID
             String carrierUserID = carrierInst.getUserId();
-            Log.i(TAG,"userID: " + carrierUserID);
+            Log.i(TAG, "userID: " + carrierUserID);
 
             //1.4启动网络
             carrierInst.start(1000);
             handler.synch.await();
-            Log.i(TAG,"carrier client is ready now");
+            Log.i(TAG, "carrier client is ready now");
 
         } catch (ElastosException e) {
             e.printStackTrace();
@@ -328,41 +331,55 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
 
     private String getAppPath() {
 
-        Context context=this;
-        File file=context.getFilesDir();
-        String path=file.getAbsolutePath();
+        Context context = this;
+        File file = context.getFilesDir();
+        String path = file.getAbsolutePath();
         return path;
     }
 
-     class CarrierHandler extends AbstractCarrierHandler {
+    class CarrierHandler extends AbstractCarrierHandler {
 
         Synchronizer synch = new Synchronizer();
         String from;
         ConnectionStatus friendStatus;
-        String CALLBACK="xxl ";
+        String CALLBACK = "xxl ";
 
 
         public void onReady(Carrier carrier) {
-            Log.i(TAG,"onReady"+System.currentTimeMillis());
+            Log.i(TAG, "onReady" + System.currentTimeMillis());
             synch.wakeup();
             waitDialog.dismiss();
+            List<FriendInfo> list = null;
+            try {
+                list = application.getCarrier().getFriends();
+                for (int i = 0; i < list.size(); i++) {
+                    application.getCarrier().removeFriend(list.get(i).getUserId());
+                }
+
+            } catch (ElastosException e) {
+                e.printStackTrace();
+            }
         }
 
         public void onFriendConnection(Carrier carrier, String friendId, ConnectionStatus status) {
 
-            Log.i(CALLBACK,"friendid:" + friendId + "connection changed to: " + status);
-            Log.i(TAG,"friendUserId :" + friendUserId);
+            Log.i(CALLBACK, "friendid:" + friendId + "connection changed to: " + status);
+            Log.i(TAG, "friendUserId :" + friendUserId);
 
             friendStatus = status;
-            if (friendStatus == ConnectionStatus.Connected){
+            if (friendStatus == ConnectionStatus.Connected) {
                 LauncherActivity.this.friendUserId = friendId;
                 application.setFriendID(friendId);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         if(dialog.isShowing()){
+                            waitDialog.show("等待对方开始");
                             dialog.cancel();
                         }
+
+                            // if(application.getMyGameUserType() == 0){
+                            //  }
                     }
                 });
 
@@ -371,20 +388,20 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
             }
         }
 
-         @Override
-         public void onFriendAdded(Carrier carrier, FriendInfo info) {
-             Log.i(TAG,"onFriendAdded"+System.currentTimeMillis());
-             super.onFriendAdded(carrier, info);
-         }
+        @Override
+        public void onFriendAdded(Carrier carrier, FriendInfo info) {
+            Log.i(TAG, "onFriendAdded" + System.currentTimeMillis());
+            super.onFriendAdded(carrier, info);
+        }
 
-         //2.2 通过好友验证
+        //2.2 通过好友验证
         public void onFriendRequest(Carrier carrier, String userId, UserInfo info, String userAddr) {
             try {
 
 //                if (hello.equals("auto-accepted")) {
 //                    carrier.AcceptFriend(userId);
 //                }
-                Log.i(TAG,"收到好友请求"+userId);
+                Log.i(TAG, "收到好友请求" + userId);
                 carrier.AcceptFriend(userId);
                 application.setFriendID(userId);
                 application.setFriendAddr(userAddr);
@@ -397,16 +414,36 @@ public class LauncherActivity extends AppCompatActivity implements View.OnClickL
 
         @Override
         //3.2 接受好友信息
-        public void onFriendMessage(Carrier carrier,String fromId, String message) {
+        public void onFriendMessage(Carrier carrier, String fromId, String message) {
 
-            Log.i(CALLBACK,"address:" + fromId + "connection changed to: " + message);
+            Log.i(CALLBACK, "address:" + fromId + "connection changed to: " + message);
             Intent intent = new Intent();
             intent.setAction(GameCommon.ACTION_MESSAGE);
-            intent.putExtra(GameCommon.ACTION_VALUE,message);
-            LauncherActivity.this.sendBroadcast(intent);
+
+
+            try {
+                JSONObject js = new JSONObject(message);
+                if (GameCommon.MESSAGE_RUNGAME.equals(js.getString(GameCommon.MESSAGE_KEY_TYPE))) {  //对方进入了游戏
+                    if (application.getMyGameUserType() == 0) {
+                        waitDialog.dismiss();
+                        LauncherActivity.this.startActivity(new Intent(LauncherActivity.this, MainActivity.class));
+                    }
+
+                } else {
+                    intent.putExtra(GameCommon.ACTION_VALUE, message);
+                    LauncherActivity.this.sendBroadcast(intent);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
 
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
 
 }

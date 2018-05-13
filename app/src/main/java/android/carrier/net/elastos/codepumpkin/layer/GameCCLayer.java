@@ -5,13 +5,16 @@ import android.carrier.net.elastos.codepumpkin.Bean.GameElement;
 import android.carrier.net.elastos.codepumpkin.Bean.GameUser;
 import android.carrier.net.elastos.codepumpkin.MainActivity;
 import android.carrier.net.elastos.codepumpkin.common.GameCommon;
+import android.carrier.net.elastos.codepumpkin.ui.WaitDialog;
 import android.carrier.net.elastos.codepumpkin.util.SpriteUtil;
 import android.carrier.net.elastos.p2pNet.CarrierExecutor;
 import android.content.Context;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.animation.Animation;
-import android.widget.ListView;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
 
 import org.cocos2d.actions.base.CCRepeatForever;
 import org.cocos2d.actions.instant.CCCallFunc;
@@ -30,7 +33,10 @@ import org.cocos2d.nodes.CCSpriteFrame;
 import org.cocos2d.nodes.CCSpriteFrameCache;
 import org.cocos2d.types.CGPoint;
 import org.cocos2d.types.CGRect;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,24 +86,44 @@ public class GameCCLayer extends CCLayer {
      */
     private boolean isRePlay = false;
 
+    private Gson gson;
+
+    private WaitDialog waitDialog;
 
     public GameCCLayer(Context context) {
         this.context = context;
+        carrierExecutorInst = new CarrierExecutor(this.context);
+        currentUser = carrierExecutorInst.getUserID();
+
+        if (carrierExecutorInst.getMyGameUserType() == 1 && !checkNull(carrierExecutorInst.getFriendID())) {
+            carrierExecutorInst.sendMessage(sendRunGameToString());  //给对方发送启动游戏事件
+        }
+        gson = new Gson();
+        waitDialog = new WaitDialog(context);
+        isTouchEnabled_ = true;
+        SpriteUtil.boxSize = this.getContentSize();
         init();
     }
 
 
     private void init() {
-        isTouchEnabled_ = true;
-        SpriteUtil.boxSize = this.getContentSize();
+
         initBg();
 
-        carrierExecutorInst = new CarrierExecutor(this.context);
-        currentUser = carrierExecutorInst.getUserID();
-
         initCtrlView();
-        initView();
+        initUserView();
 
+
+
+        if (carrierExecutorInst.getMyGameUserType() == 0) {
+            initElement();
+        } else {
+            waitDialog.show("等待地图");
+        }
+
+        playUserAnimation();
+
+        createStepPrompt();
 
         //add globel info
         //schedule("actionLoop", 0.1f);
@@ -130,7 +156,9 @@ public class GameCCLayer extends CCLayer {
                 ((MainActivity) context).dialog.showDialog(actionList);
             }
         });
-        this.initView();
+        initUserView();
+
+        createStepPrompt();
         actionLoop();
 
 
@@ -228,25 +256,41 @@ public class GameCCLayer extends CCLayer {
         }
     }
 
-    /***
-     * 控件处理
+
+    /**
+     * 暴露给外部的数据处理
      */
-    public void ElementHandler(List<GameElement> pumpkins, List<GameElement> bush) {
-        // 添加南瓜和障碍物
-        for (int i = 0; i < pumpkins.size(); i++) {
-            CCSprite cc = SpriteUtil.createPumpkin();
-            cc.setPosition(pumpkins.get(i).getX(), pumpkins.get(i).getY());
-            pumpkinList.add(cc);
-            this.addChild(pumpkinList.get(i), 10);
+    public void dataHandler(String data) {
+        try {
+            if (data != null && !"".equals(data)) {
+                JSONObject js = new JSONObject(data);
+                JsonReader reader = new JsonReader(new StringReader(js.getString(GameCommon.MESSAGE_KEY_DATA)));
+                reader.setLenient(true);
+                switch (js.getString(GameCommon.MESSAGE_KEY_TYPE)) {
+                    case GameCommon.MESSAGE_ACTION:     //动作
+                        actionHandler((Action) (gson.fromJson(reader, Action.class)));
+                        break;
+                    case GameCommon.MESSAGE_MAP:        //地图
+                        mapElementHandler(
+                                (List<GameElement>) (gson.fromJson(
+                                        reader,
+                                        new TypeToken<List<GameElement>>() {
+                                        }.getType())));
+                        break;
+                    case GameCommon.MESSAGE_RUNGAME:    //启动游戏
+
+                        break;
+                }
+
+
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
 
-        for (int i = 0; i < bush.size(); i++) {
-            CCSprite cc = SpriteUtil.createBush();
-            cc.setPosition(bush.get(i).getX(), bush.get(i).getY());
-            bushList.add(cc);
-            this.addChild(bushList.get(i), 10);
-        }
     }
+
 
     /**
      * 事件处理
@@ -297,7 +341,7 @@ public class GameCCLayer extends CCLayer {
             if (!checkNull(carrierExecutorInst.getFriendID()) &&
                     !isRePlay &&
                     !action.getUserId().equals(carrierExecutorInst.getFriendID())) {
-                carrierExecutorInst.sendMessage(action);
+                carrierExecutorInst.sendMessage(actionToString(action));
             }
 
         }
@@ -639,7 +683,7 @@ public class GameCCLayer extends CCLayer {
     /**
      * 初始化其他视图控件
      */
-    private void initView() {
+    private void initUserView() {
 
         if (isRePlay) {
             for (int i = 0; i < gameUserList.size(); i++) {
@@ -701,42 +745,45 @@ public class GameCCLayer extends CCLayer {
 //            gameUserList.add(friendUser);
 //            this.addChild(friendUser.getSprite(), 5);
 
-            initElement();
         }
-
-        playUserAnimation();
-        createStepPrompt();
 
     }
 
     private void initElement() {
 
-        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(480, 310)));
-        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(320, 270)));
-        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(530, 270)));
-        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(210, 250)));
-        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(160, 360)));
-
-        bushList.add(SpriteUtil.createBushByPoint(CGPoint.make(630, 250)));
-        bushList.add(SpriteUtil.createBushByPoint(CGPoint.make(192, 170)));
-        bushList.add(SpriteUtil.createBushByPoint(CGPoint.make(100, 290)));
-
-        for (int i = 0; i < pumpkinList.size(); i++) {
-            this.addChild(pumpkinList.get(i), 10);
-        }
-        for (int i = 0; i < bushList.size(); i++) {
-            this.addChild(bushList.get(i), 10);
-        }
-//        // 添加南瓜和障碍物
-//        for (int i = 0; i < GameCommon.PUMPKIN_COUNT; i++) {
-//            pumpkinList.add(randomPositionBySprite(SpriteUtil.createPumpkin()));
+//        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(480, 310)));
+//        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(320, 270)));
+//        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(530, 270)));
+//        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(210, 250)));
+//        pumpkinList.add(SpriteUtil.createPumpkinByPoint(CGPoint.make(160, 360)));
+//
+//        bushList.add(SpriteUtil.createBushByPoint(CGPoint.make(630, 250)));
+//        bushList.add(SpriteUtil.createBushByPoint(CGPoint.make(192, 170)));
+//        bushList.add(SpriteUtil.createBushByPoint(CGPoint.make(100, 290)));
+//
+//        for (int i = 0; i < pumpkinList.size(); i++) {
 //            this.addChild(pumpkinList.get(i), 10);
 //        }
-//
-//        for (int i = 0; i < GameCommon.BUSH_COUNT; i++) {
-//            bushList.add(randomPositionBySprite(SpriteUtil.createBush()));
+//        for (int i = 0; i < bushList.size(); i++) {
 //            this.addChild(bushList.get(i), 10);
 //        }
+
+
+        // 添加南瓜和障碍物
+        for (int i = 0; i < GameCommon.PUMPKIN_COUNT; i++) {
+            pumpkinList.add(randomPositionBySprite(SpriteUtil.createPumpkin()));
+            this.addChild(pumpkinList.get(i), 10);
+        }
+
+        for (int i = 0; i < GameCommon.BUSH_COUNT; i++) {
+            bushList.add(randomPositionBySprite(SpriteUtil.createBush()));
+            this.addChild(bushList.get(i), 10);
+        }
+
+        if (carrierExecutorInst.getMyGameUserType() == 0 && !checkNull(carrierExecutorInst.getFriendID())) {
+            carrierExecutorInst.sendMessage(mapElementToString());
+        }
+
     }
 
 
@@ -761,10 +808,10 @@ public class GameCCLayer extends CCLayer {
                 if (user.getDirection() % 2 != 0) {  //x轴
                     if (p.x > b.origin.x && p.x < b.origin.x + b.size.width) {   // x轴重合
 
-                        if(user.getDirection() == 1){
-                            t = (int) ( b.origin.y -  p.y  + 10);
-                        }else{
-                            t = (int) ( p.y - b.origin.y  + 10);
+                        if (user.getDirection() == 1) {
+                            t = (int) (b.origin.y - p.y + 10);
+                        } else {
+                            t = (int) (p.y - b.origin.y + 10);
 
                         }
                         stepPromptList.add(SpriteUtil.createStepText((t > 0 ? "+" + t : "" + t), createStepPromptPosition(), t));
@@ -773,10 +820,10 @@ public class GameCCLayer extends CCLayer {
                     }
                 } else {                                                      //y轴
                     if (p.y > b.origin.y && p.y < b.origin.y + b.size.height) {   // y轴重合
-                        if(user.getDirection() == 2){
+                        if (user.getDirection() == 2) {
                             t = (int) (b.origin.x - p.x + 10);
-                        }else{
-                            t = (int) ( p.x - b.origin.x + 10);
+                        } else {
+                            t = (int) (p.x - b.origin.x + 10);
                         }
                         stepPromptList.add(SpriteUtil.createStepText((t > 0 ? "+" + t : "" + t), createStepPromptPosition(), t));
                         this.addChild(stepPromptList.get(stepPromptList.size() - 1), 20);
@@ -843,4 +890,83 @@ public class GameCCLayer extends CCLayer {
     }
 
 
+    /***
+     * 处理地图数据到字符串
+     * @return
+     */
+    public String mapElementToString() {
+        JSONObject js = new JSONObject();
+        try {
+            js.put(GameCommon.MESSAGE_KEY_TYPE, GameCommon.MESSAGE_MAP);
+            List<GameElement> gameElementList = new ArrayList<>();
+            for (int i = 0; i < pumpkinList.size(); i++) {
+                gameElementList.add(new GameElement(i, 1, pumpkinList.get(i).getPosition().x, pumpkinList.get(i).getPosition().y));
+            }
+            for (int i = 0; i < bushList.size(); i++) {
+                gameElementList.add(new GameElement(i + 5, 2, bushList.get(i).getPosition().x, bushList.get(i).getPosition().y));
+            }
+            js.put(GameCommon.MESSAGE_KEY_DATA, gson.toJson(gameElementList));
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return js.toString();
+
+    }
+
+    /***
+     * 地图控件处理
+     */
+    public void mapElementHandler(final List<GameElement> list) {
+        pumpkinList.clear();
+        bushList.clear();
+        // 添加南瓜和障碍物
+        for (int i = 0; i < list.size(); i++) {
+            CCSprite cc = null;
+            if (list.get(i).getType() == 1) {
+                cc = SpriteUtil.createPumpkin();
+                pumpkinList.add(cc);
+            } else {
+                cc = SpriteUtil.createBush();
+                bushList.add(cc);
+            }
+            cc.setPosition(list.get(i).getX(), list.get(i).getY());
+            GameCCLayer.this.addChild(cc);
+        }
+
+        waitDialog.dismiss();
+        createStepPrompt();
+
+
+    }
+
+    /**
+     * 启动游戏事件字符串
+     */
+    public String sendRunGameToString() {
+        JSONObject js = new JSONObject();
+        try {
+            js.put(GameCommon.MESSAGE_KEY_TYPE, GameCommon.MESSAGE_RUNGAME);
+            js.put(GameCommon.MESSAGE_KEY_DATA, carrierExecutorInst.getUserID() + "");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return js.toString();
+    }
+
+    /**
+     * 动作事件到字符串
+     */
+    public String actionToString(Action action) {
+        JSONObject js = new JSONObject();
+        try {
+            js.put(GameCommon.MESSAGE_KEY_TYPE, GameCommon.MESSAGE_ACTION);
+            js.put(GameCommon.MESSAGE_KEY_DATA, gson.toJson(action));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return js.toString();
+    }
 }

@@ -21,12 +21,14 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonReader;
 
 
 import org.cocos2d.layers.CCScene;
 import org.cocos2d.nodes.CCDirector;
 import org.cocos2d.opengl.CCGLSurfaceView;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -196,14 +198,7 @@ public class MainActivity extends AppCompatActivity {
             String message = intent.getStringExtra(GameCommon.ACTION_VALUE);
             Log.i("info", message);
 
-            try {
-                JsonReader reader = new JsonReader(new StringReader(message));
-                reader.setLenient(true);
-                Action action = gson.fromJson(reader, Action.class);
-                gameCCLayer.actionHandler(action);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            gameCCLayer.dataHandler(message);
 
         }
 
